@@ -4,6 +4,7 @@ export interface User {
   name: string;
   avatar?: string;
   createdAt: string;
+   updatedAt?: string;
 }
 
 export interface Poll {
@@ -22,6 +23,7 @@ export interface Poll {
   isActive: boolean;
   totalVotes: number;
   hasVoted?: boolean;
+  views?:number;
 }
 
 export interface PollOption {

@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 
 // Mock polls data
-
 const polls: any[] = [
   {
     id: '1',
@@ -39,7 +38,7 @@ const polls: any[] = [
 ];
 
 export async function GET() {
-  console.log('Fetching all polls');
+  console.log('📡 Fetching all polls');
   return NextResponse.json(polls);
 }
 
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
     
-    console.log('Creating poll:', data);
+    console.log('📝 Creating poll:', data);
     
     const newPoll = {
       id: Date.now().toString(),
@@ -66,11 +65,11 @@ export async function POST(request: Request) {
     
     polls.unshift(newPoll);
     
-    console.log('Poll created successfully:', newPoll);
+    console.log('✅ Poll created successfully:', newPoll);
     
     return NextResponse.json(newPoll);
   } catch (error) {
-    console.error('Failed to create poll:', error);
+    console.error('❌ Failed to create poll:', error);
     return NextResponse.json(
       { error: 'Failed to create poll' },
       { status: 500 }

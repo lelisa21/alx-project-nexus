@@ -1,0 +1,9 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+// This is a placeholder - we'll handle sockets through the socket server
+export async function GET(req: NextRequest) {
+  return NextResponse.json({ 
+    message: 'Socket.io endpoint',
+    status: 'active'
+  });
+}

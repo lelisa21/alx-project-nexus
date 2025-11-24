@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/Badge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PollChart } from '@/components/polls/PollChart';
-import { calculatePercentage, getRandomColor } from '@/lib/utils';
+import { calculatePercentage } from '@/lib/utils';
 
 export default function PollDetail() {
   const params = useParams();
@@ -38,11 +38,15 @@ export default function PollDetail() {
   useEffect(() => {
     const fetchPoll = async () => {
       try {
+        console.log('Fetching poll with ID:', pollId);
         const response = await fetch(`/api/polls/${pollId}`);
+        
         if (response.ok) {
           const poll = await response.json();
+          console.log('Poll fetched successfully:', poll);
           dispatch(setCurrentPoll(poll));
         } else {
+          console.error('Failed to fetch poll, status:', response.status);
           router.push('/dashboard');
         }
       } catch (error) {
@@ -51,11 +55,15 @@ export default function PollDetail() {
       }
     };
 
-    fetchPoll();
-    joinPollRoom(pollId);
+    if (pollId) {
+      fetchPoll();
+      joinPollRoom(pollId);
+    }
 
     return () => {
-      leavePollRoom(pollId);
+      if (pollId) {
+        leavePollRoom(pollId);
+      }
       dispatch(setCurrentPoll(null));
     };
   }, [pollId, dispatch, router, joinPollRoom, leavePollRoom]);
@@ -68,21 +76,30 @@ export default function PollDetail() {
 
     setVoteLoading(optionId);
     try {
-      voteInPoll(pollId, optionId);
-      
-      // Optimistic update
-      if (currentPoll) {
-        const updatedPoll = {
-          ...currentPoll,
-          options: currentPoll.options.map(opt => 
-            opt.id === optionId 
-              ? { ...opt, votes: opt.votes + 1, voted: true }
-              : opt
-          ),
-          totalVotes: currentPoll.totalVotes + 1,
-          hasVoted: true,
-        };
-        dispatch(updatePoll(updatedPoll));
+      // Call the vote API
+      const response = await fetch(`/api/polls/${pollId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ optionId }),
+      });
+
+      if (response.ok) {
+        voteInPoll(pollId, optionId);
+        
+        // Optimistic update
+        if (currentPoll) {
+          const updatedPoll = {
+            ...currentPoll,
+            options: currentPoll.options.map(opt => 
+              opt.id === optionId 
+                ? { ...opt, votes: opt.votes + 1, voted: true }
+                : opt
+            ),
+            totalVotes: currentPoll.totalVotes + 1,
+            hasVoted: true,
+          };
+          dispatch(updatePoll(updatedPoll));
+        }
       }
     } catch (error) {
       console.error('Failed to submit vote:', error);
@@ -98,39 +115,54 @@ export default function PollDetail() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading || !currentPoll) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <LoadingSpinner size="lg" />
+        <span className="ml-3 text-gray-600 dark:text-gray-400">Loading poll...</span>
+      </div>
+    );
+  }
+
+  if (!currentPoll) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-96">
+        <div className="text-6xl mb-4">😕</div>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Poll Not Found</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">The poll you&apos;re looking for doesn&apos;t exist.</p>
+        <Link href="/dashboard">
+          <Button>Back to Dashboard</Button>
+        </Link>
       </div>
     );
   }
 
   const hasVoted = currentPoll.hasVoted || currentPoll.options.some(opt => opt.voted);
-  const isOwner = currentPoll.createdBy === user?.id;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
           <Link
             href="/dashboard"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4 group"
+            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4 group dark:text-gray-400 dark:hover:text-white"
           >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Back to dashboard
           </Link>
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-gray-900">{currentPoll.question}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{currentPoll.question}</h1>
             {currentPoll.isActive ? (
               <Badge variant="success">Active</Badge>
             ) : (
               <Badge variant="warning">Closed</Badge>
             )}
-            {isOwner && <Badge variant="info">Your Poll</Badge>}
           </div>
-          <div className="flex items-center space-x-6 mt-2 text-sm text-gray-600">
+          {currentPoll.description && (
+            <p className="text-gray-600 dark:text-gray-400 mt-2">{currentPoll.description}</p>
+          )}
+          <div className="flex items-center space-x-6 mt-2 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-center">
               <Users className="h-4 w-4 mr-1" />
               {currentPoll.totalVotes} votes
@@ -180,10 +212,10 @@ export default function PollDetail() {
                       className={`border rounded-xl p-4 transition-all duration-200 ${
                         hasVoted
                           ? option.voted
-                            ? 'border-indigo-300 bg-indigo-50'
-                            : 'border-gray-200'
-                          : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer'
-                      } ${isLeading && hasVoted ? 'ring-2 ring-indigo-200' : ''}`}
+                            ? 'border-indigo-300 bg-indigo-50 dark:border-indigo-500 dark:bg-indigo-900/20'
+                            : 'border-gray-200 dark:border-gray-600'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:border-indigo-500 dark:hover:bg-indigo-900/20 cursor-pointer'
+                      } ${isLeading && hasVoted ? 'ring-2 ring-indigo-200 dark:ring-indigo-400' : ''}`}
                       onClick={() => !hasVoted && handleVote(option.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -193,20 +225,20 @@ export default function PollDetail() {
                               hasVoted
                                 ? option.voted
                                   ? 'bg-indigo-600 text-white'
-                                  : 'bg-gray-200 text-gray-600'
-                                : 'bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-600'
+                                  : 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-indigo-100 hover:text-indigo-600 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400'
                             }`}
                           >
                             {String.fromCharCode(65 + index)}
                           </div>
-                          <span className="font-medium text-gray-900">{option.text}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{option.text}</span>
                         </div>
                         {hasVoted && (
                           <div className="text-right">
-                            <div className="font-semibold text-gray-900">
+                            <div className="font-semibold text-gray-900 dark:text-white">
                               {option.votes} votes
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
                               {percentage.toFixed(1)}%
                             </div>
                           </div>
@@ -214,11 +246,9 @@ export default function PollDetail() {
                       </div>
 
                       {hasVoted && (
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
                           <div
-                            className={`h-2 rounded-full transition-all duration-1000 ${
-                              getRandomColor(index)
-                            }`}
+                            className="h-2 rounded-full bg-indigo-600 transition-all duration-1000"
                             style={{ width: `${percentage}%` }}
                           />
                         </div>
@@ -235,8 +265,8 @@ export default function PollDetail() {
               </div>
 
               {hasVoted && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center justify-center text-sm text-gray-600">
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
                     <Eye className="h-4 w-4 mr-2" />
                     Results update in real-time as people vote
                   </div>
@@ -256,7 +286,19 @@ export default function PollDetail() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PollChart poll={currentPoll} />
+              <PollChart poll={currentPoll} type="bar" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Results Distribution</CardTitle>
+              <CardDescription>
+                Percentage breakdown of votes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PollChart poll={currentPoll} type="doughnut" />
             </CardContent>
           </Card>
 
@@ -267,22 +309,22 @@ export default function PollDetail() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Total Votes</span>
-                <span className="font-semibold text-gray-900">{currentPoll.totalVotes}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total Votes</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{currentPoll.totalVotes}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Options</span>
-                <span className="font-semibold text-gray-900">{currentPoll.options.length}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Options</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{currentPoll.options.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Status</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
                 <Badge variant={currentPoll.isActive ? 'success' : 'warning'}>
                   {currentPoll.isActive ? 'Active' : 'Closed'}
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Created</span>
-                <span className="font-semibold text-gray-900 text-sm">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Created</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">
                   {new Date(currentPoll.createdAt).toLocaleDateString()}
                 </span>
               </div>

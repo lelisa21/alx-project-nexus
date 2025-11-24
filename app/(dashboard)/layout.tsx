@@ -55,27 +55,27 @@ export default function DashboardLayout({
     },
     { 
       name: 'Create Poll', 
-      href: '/dashboard/polls/create', 
+      href: '/polls/create', 
       icon: Plus,
-      current: pathname === '/dashboard/polls/create'
+      current: pathname === '/polls/create'
     },
     { 
       name: 'My Polls', 
-      href: '/dashboard/polls', 
+      href: '/polls', 
       icon: PieChart,
-      current: pathname === '/dashboard/polls'
+      current: pathname === '/polls'
     },
     { 
       name: 'Profile', 
-      href: '/dashboard/profile', 
+      href: '/profile', 
       icon: User,
-      current: pathname === '/dashboard/profile'
+      current: pathname === '/profile'
     },
   ];
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center dark:bg-gray-800">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-b-green-600 border-t-red-600"></div>
       </div>
     );
@@ -83,7 +83,7 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
           <div 
@@ -132,9 +132,9 @@ export default function DashboardLayout({
             </div>
 
             {/* User section */}
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="shrink-0 flex border-t border-gray-200 p-4">
               <div className="flex items-center w-full">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
@@ -145,7 +145,7 @@ export default function DashboardLayout({
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="ml-3 flex-shrink-0 text-gray-400 hover:text-gray-500 transition-colors"
+                  className="ml-3 shrink-0 text-gray-400 hover:text-gray-500 transition-colors"
                   title="Sign out"
                 >
                   <LogOut className="h-5 w-5" />
@@ -157,7 +157,7 @@ export default function DashboardLayout({
 
         {/* Desktop sidebar */}
         <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-          <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
+          <div className="flex-1 flex flex-col min-h-0 border-r border-green-200 bg-[#444444]">
             <div className="flex-1 flex flex-col pt-8 pb-4 overflow-y-auto">
               {/* Logo */}
               <div className="flex items-center justify-between px-6 mb-8">
@@ -175,7 +175,7 @@ export default function DashboardLayout({
                     className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                       item.current
                         ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
+                        : 'text-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
                     }`}
                   >
                     <item.icon className={`mr-3 h-5 w-5 transition-colors ${

@@ -13,7 +13,7 @@ const PollCard: React.FC<Props> = ({ poll }) => {
       <p className="text-gray-500">{poll.description}</p>
       <p className="text-sm text-gray-400">Created by {poll.createdByUser?.name ?? "Unknown"}</p>
       <Link
-        href={`/dashboard/polls/${poll.id}`}
+        href={`/polls/${poll.id}`}
         className="text-blue-500 mt-2 inline-block"
       >
         View Poll

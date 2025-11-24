@@ -1,3 +1,4 @@
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -6,8 +7,9 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, Doughnut } from "react-chartjs-2";
 import { Poll } from "../interface";
 
 ChartJS.register(
@@ -16,14 +18,50 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ArcElement
 );
+
+interface ChartProps {
+
+  data: any;
+  type?: "bar" | "doughnut";
+  options?: any;
+  height?: number;
+}
+
+export const ChartComponent: React.FC<ChartProps> = ({
+  data,
+  type = "bar",
+  options = {},
+  height = 300,
+}) => {
+  const defaultOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+    },
+    ...options,
+  };
+
+  const Chart = type === "bar" ? Bar : Doughnut;
+
+  return (
+    <div style={{ height: `${height}px` }}>
+      <Chart data={data} options={defaultOptions} />
+    </div>
+  );
+};
+
 
 interface Props {
   poll: Poll;
 }
 
-const ResultChart: React.FC<Props> = ({ poll }) => {
+export const ResultChart: React.FC<Props> = ({ poll }) => {
   const data = {
     labels: poll.options.map((o) => o.text),
     datasets: [
@@ -35,7 +73,17 @@ const ResultChart: React.FC<Props> = ({ poll }) => {
     ],
   };
 
-  return <Bar data={data} />;
+  return (
+    <div style={{ height: "300px" }}>
+      <Bar
+        data={data}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+        }}
+      />
+    </div>
+  );
 };
 
 export default ResultChart;

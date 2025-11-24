@@ -27,7 +27,7 @@ export default function Register() {
 
   const onSubmit = async (data: RegisterInput) => {
     setLoading(true);
-    console.log('Registration attempt:', data); // Debug log
+    console.log('Registration attempt:', data); 
     
     try {
       const response = await fetch('/api/auth/register', {
@@ -36,23 +36,23 @@ export default function Register() {
         body: JSON.stringify(data),
       });
 
-      console.log('Registration response status:', response.status); // Debug log
+      console.log('Registration response status:', response.status); 
 
       if (response.ok) {
         const user = await response.json();
-        console.log('Registration successful, user:', user); // Debug log
+        console.log('Registration successful, user:', user); 
         dispatch(setUser(user));
         router.push('/dashboard');
         router.refresh();
       } else {
         const errorData = await response.json();
-        console.log('Registration error response:', errorData); // Debug log
+        console.log('Registration error response:', errorData);
         setError('root', { 
           message: errorData.error || `Registration failed (${response.status})` 
         });
       }
     } catch (error) {
-      console.error('Registration network error:', error); // Debug log
+      console.error('Registration network error:', error); 
       setError('root', { 
         message: 'Network error. Please check your connection.' 
       });
@@ -61,7 +61,7 @@ export default function Register() {
     }
   };
 
-  // Test with demo credentials
+
   const useDemoAccount = () => {
     const demoData = {
       name: 'Demo User',
@@ -69,14 +69,13 @@ export default function Register() {
       password: 'password123'
     };
     
-    // You can pre-fill the form or auto-submit
+ 
     console.log('Using demo account:', demoData);
-    // For now, just log it - user can copy/paste
+    
   };
 
   const handleOAuth = (provider: string) => {
-    console.log('OAuth attempt:', provider); // Debug log
-    // For now, just show a message
+    console.log('OAuth attempt:', provider); 
     setError('root', { 
       message: `OAuth with ${provider} is not configured yet. Use email registration.` 
     });
@@ -95,7 +94,7 @@ export default function Register() {
         </Link>
 
         {/* Register Card */}
-        <div className="card p-8">
+        <div className="card p-8 ">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <User className="h-8 w-8 text-white" />

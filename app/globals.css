@@ -1,56 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Enable class-based dark mode */
+.app-background {
+  background-image: url('/images/bg-second.png');
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-
+@layer base {
+  html {
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  body {
+    @apply antialiased text-gray-900 bg-gray-50;
+  }
+  
+  /* Add dark mode base styles */
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
 }
+
 @layer components {
   .btn-primary {
-    @apply bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    
+    /* Dark mode variant */
+    .dark & {
+      @apply bg-indigo-700 hover:bg-indigo-600 focus:ring-indigo-400;
+    }
   }
   
   .btn-secondary {
-    @apply bg-gray-500 text-white px-4 py-2 rounded-lg font-medium border border-gray-700 hover:bg-gray-500/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200;
+    @apply bg-white text-gray-700 px-4 py-2 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200;
+    
+    /* Dark mode variant */
+    .dark & {
+      @apply bg-gray-800 text-gray-200 border-gray-600 hover:bg-gray-700 focus:ring-indigo-400;
+    }
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-sm border-2 border-gray-300 hover:shadow-md transition-shadow duration-300;
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200;
+    
+    /* Dark mode variant */
+    .dark & {
+      @apply bg-gray-800 border-gray-700 text-white;
+    }
   }
   
   .input-primary {
     @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 transition-colors duration-200;
+    
+    /* Dark mode variant */
+    .dark & {
+      @apply bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:ring-indigo-400 focus:border-indigo-400;
+    }
   }
   
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-  
+  /* Update badge variants for dark mode */
   .badge-success {
     @apply bg-green-100 text-green-800;
+    .dark & {
+      @apply bg-green-900 text-green-200;
+    }
   }
   
   .badge-warning {
     @apply bg-yellow-100 text-yellow-800;
+    .dark & {
+      @apply bg-yellow-900 text-yellow-200;
+    }
   }
   
   .badge-error {
     @apply bg-red-100 text-red-800;
+    .dark & {
+      @apply bg-red-900 text-red-200;
+    }
   }
   
   .badge-info {
     @apply bg-blue-100 text-blue-800;
+    .dark & {
+      @apply bg-blue-900 text-blue-200;
+    }
   }
 }
 
@@ -58,6 +100,7 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
   
   .animate-in {
     animation: animate-in 0.5s ease-out;
@@ -73,4 +116,4 @@ body {
       transform: translateY(0);
     }
   }
-}
+

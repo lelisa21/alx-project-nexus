@@ -57,7 +57,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 w-full">
       <div className="max-w-md w-full">
         {/* Back to Home */}
         <Link
@@ -69,12 +69,12 @@ export default function Login() {
         </Link>
 
         {/* Login Card */}
-        <div className="card p-8">
-          <div className="text-center mb-8">
+        <div className="card p-8 w-full">
+          <div className="text-center mb-8 dark:text-white">
             <div className="w-16 h-16 bg-gradient-to-r from-indigo-500/80 to-black rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Lock className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">Welcome back</h1>
             <p className="text-gray-600">Sign in to your account to continue</p>
           </div>
 

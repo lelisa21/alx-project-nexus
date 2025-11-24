@@ -25,14 +25,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           if (user) {
             dispatch(setUser(user));
             
-            // Redirect to dashboard if on auth pages and already logged in
+        
             if (pathname === '/login' || pathname === '/register') {
               router.push('/dashboard');
             }
           } else {
             // No user logged in
             if (pathname.startsWith('/dashboard')) {
-              // Don't redirect immediately, let ProtectedRoute handle it
+         
               console.log('No user, but staying on page for demo');
             }
           }
@@ -41,7 +41,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        // Don't redirect on error for demo purposes
+      
       } finally {
         dispatch(setLoading(false));
       }
