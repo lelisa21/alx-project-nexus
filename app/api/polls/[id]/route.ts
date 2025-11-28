@@ -1,128 +1,35 @@
-// app/api/polls/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
 
-// Your actual poll data
-const mockPolls = {
-  '1764087589202': {
-    id: '1764087589202',
-    question: "What's the main part of computer?",
-    description: "awaeaeaeaesda",
-    options: [
-      { id: "opt-1764087589202-0", text: "CPU", votes: 0, voted: false },
-      { id: "opt-1764087589202-1", text: "Disk", votes: 0, voted: false },
-      { id: "opt-1764087589202-2", text: "Main Memory", votes: 0, voted: false },
-      { id: "opt-1764087589202-3", text: "RAM", votes: 0, voted: false },
-      { id: "opt-1764087589202-4", text: "Computer", votes: 0, voted: false }
-    ],
-    settings: {
-      isPublic: true,
-      allowMultipleVotes: true,
-      requireEmail: true,
-      showResults: true,
-      endDate: ""
-    },
-    totalVotes: 0,
-    isActive: true,
-    createdAt: "2025-11-25T16:19:49.202Z",
-    views: 0,
-    createdBy: "1",
-    updatedAt: "2025-11-25T16:19:49.202Z",
-    hasVoted: false
-  },
-  '1': {
-    id: '1',
-    question: "What's your favorite frontend framework?",
-    description: "Help us understand developer preferences in 2024",
-    options: [
-      { id: "1", text: "React", votes: 45, voted: false },
-      { id: "2", text: "Vue", votes: 30, voted: false },
-      { id: "3", text: "Angular", votes: 25, voted: false },
-      { id: "4", text: "Svelte", votes: 15, voted: false }
-    ],
-    createdBy: "1",
-    createdAt: "2025-11-25T15:45:26.935Z",
-    updatedAt: "2025-11-25T15:45:26.935Z",
-    isActive: true,
-    totalVotes: 115,
-    views: 250,
-    hasVoted: false
-  },
-  '2': {
-    id: '2',
-    question: "Which feature do you use most in Pollify?",
-    description: "We want to improve our most used features",
-    options: [
-      { id: "1", text: "Real-time results", votes: 60, voted: false },
-      { id: "2", text: "Chart visualizations", votes: 45, voted: false },
-      { id: "3", text: "Poll sharing", votes: 30, voted: false },
-      { id: "4", text: "Multiple options", votes: 20, voted: false }
-    ],
-    createdBy: "1",
-    createdAt: "2025-11-25T15:45:26.935Z",
-    updatedAt: "2025-11-25T15:45:26.935Z",
-    isActive: true,
-    totalVotes: 155,
-    views: 320,
-    hasVoted: false
-  }
-};
+function isValidObjectId(id: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(id);
+}
 
-// FIXED: Next.js 14+ requires awaiting params
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // AWAIT the params - this is the key fix!
     const { id } = await params;
-    console.log('🔍 API GET - Poll ID:', id);
+    console.log('🔍 Fetching poll:', id);
 
-    if (!id) {
+    if (!isValidObjectId(id)) {
       return NextResponse.json(
-        { error: 'Poll ID is required' },
+        { error: 'Invalid poll ID format' },
         { status: 400 }
       );
     }
 
-    // Check if poll exists
-    const poll = (mockPolls as any)[id];
-    
-    if (poll) {
-      console.log('✅ Poll found:', poll.question);
-      return NextResponse.json(poll);
-    } else {
-      console.log('❌ Poll not found. Available polls:', Object.keys(mockPolls));
-      return NextResponse.json(
-        { 
-          error: `Poll with ID "${id}" not found`,
-          availablePolls: Object.keys(mockPolls),
-          requestedId: id
+    const poll = await prisma.poll.findUnique({
+      where: { id },
+      include: {
+        options: {
+          orderBy: { votes: 'desc' }
         },
-        { status: 404 }
-      );
-    }
-  } catch (error) {
-    console.error('❌ API GET Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+        settings: true
+      }
+    });
 
-// FIXED: Also await params in POST
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    // AWAIT the params
-    const { id } = await params;
-    const { optionId } = await request.json();
-
-    console.log('🗳️ API POST - Voting on poll:', id, 'option:', optionId);
-
-    const poll = (mockPolls as any)[id];
     if (!poll) {
       return NextResponse.json(
         { error: 'Poll not found' },
@@ -130,28 +37,117 @@ export async function POST(
       );
     }
 
-    // Update vote count
-    const option = poll.options.find((opt: any) => opt.id === optionId);
-    if (option) {
-      option.votes += 1;
-      poll.totalVotes += 1;
-      poll.updatedAt = new Date().toISOString();
-      
-      // Mark this option as voted (for UI)
-      option.voted = true;
-      poll.hasVoted = true;
+    // Increment views
+    await prisma.poll.update({
+      where: { id },
+      data: { views: { increment: 1 } }
+    });
+
+    return NextResponse.json(poll);
+  } catch (error: any) {
+    console.error('GET /api/polls/[id] Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch poll: ' + error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { optionId, voterId } = await request.json();
+
+    console.log('🗳️ Voting on poll:', id, 'option:', optionId);
+
+    if (!isValidObjectId(id) || !isValidObjectId(optionId)) {
+      return NextResponse.json(
+        { error: 'Invalid poll or option ID' },
+        { status: 400 }
+      );
     }
+
+    // Check if poll exists
+    const poll = await prisma.poll.findUnique({
+      where: { id },
+      include: { 
+        settings: true,
+        options: {
+          where: { id: optionId }
+        }
+      }
+    });
+
+    if (!poll || poll.options.length === 0) {
+      return NextResponse.json(
+        { error: 'Poll or option not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check for existing vote
+    if (voterId && !poll.settings?.allowMultipleVotes) {
+      const existingVote = await prisma.vote.findFirst({
+        where: {
+          pollId: id,
+          voterId: voterId
+        }
+      });
+
+      if (existingVote) {
+        return NextResponse.json(
+          { error: 'You have already voted on this poll' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Update votes
+    await prisma.option.update({
+      where: { id: optionId },
+      data: { votes: { increment: 1 } }
+    });
+
+    await prisma.poll.update({
+      where: { id },
+      data: { totalVotes: { increment: 1 } }
+    });
+
+    // Record vote
+    if (voterId) {
+      await prisma.vote.create({
+        data: {
+          optionId,
+          pollId: id,
+          voterId
+        }
+      });
+    }
+
+    // Get updated poll
+    const updatedPoll = await prisma.poll.findUnique({
+      where: { id },
+      include: {
+        options: {
+          orderBy: { votes: 'desc' }
+        },
+        settings: true
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      poll: poll,
+      poll: updatedPoll,
       votedOption: optionId
     });
 
-  } catch (error) {
-    console.error('❌ API POST Error:', error);
+  } catch (error: any) {
+    console.error('POST /api/polls/[id] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to submit vote' },
+      { error: 'Failed to submit vote: ' + error.message },
       { status: 500 }
     );
   }

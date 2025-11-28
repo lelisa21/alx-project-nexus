@@ -1,4 +1,3 @@
-// app/polls/create/page.tsx
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -11,7 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { createPollSchema, type CreatePollInput } from '@/lib/schemas/poll';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks'; // Added useAppSelector
 import { addPoll } from '@/features/polls/pollsSlice';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -19,7 +18,6 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Toggle } from '@/components/ui/Toggle';
 
-// Define the poll settings type
 interface PollSettings {
   isPublic: boolean;
   allowMultipleVotes: boolean;
@@ -42,6 +40,7 @@ export default function CreatePoll() {
   
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth); 
 
   const {
     register,
@@ -67,13 +66,12 @@ export default function CreatePoll() {
 
   const options = watch('options');
   const question = watch('question');
-  const description = watch('description') || ''; // Fix for possibly undefined
+  const description = watch('description') || '';
 
   const canAddMore = options.length < 8;
   const hasEmptyOptions = options.some(option => !option.text.trim());
   const isValidForm = !hasEmptyOptions && question.trim() && options.length >= 2;
 
-  // Update character count in real-time
   useEffect(() => {
     setCharacterCount({
       question: question.length,
@@ -84,14 +82,21 @@ export default function CreatePoll() {
   const onSubmit = async (data: CreatePollInput) => {
     setLoading(true);
     try {
+      console.log('📝 Creating poll with data:', data);
+      console.log('👤 Current user:', user);
+
       const pollData = {
         ...data,
         settings: pollSettings,
         totalVotes: 0,
         isActive: true,
         createdAt: new Date().toISOString(),
+        createdBy: user?.id || '1', 
+        updatedAt: new Date().toISOString(),
         views: 0,
       };
+
+      console.log('🚀 Sending poll data to API:', pollData);
 
       const response = await fetch('/api/polls', {
         method: 'POST',
@@ -101,17 +106,20 @@ export default function CreatePoll() {
 
       if (response.ok) {
         const newPoll = await response.json();
+        console.log('✅ Poll created successfully:', newPoll);
         dispatch(addPoll(newPoll));
         
         // Show success message
         setTimeout(() => {
-          router.push('/dashboard');
+         router.push(`/poll/${newPoll.id}`);
         }, 1000);
       } else {
-        throw new Error('Failed to create poll');
+        const errorData = await response.json();
+        console.error(' Failed to create poll:', errorData);
+        alert(`Failed to create poll: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Failed to create poll:', error);
+      console.error(' Failed to create poll:', error);
       alert('Failed to create poll. Please try again.');
     } finally {
       setLoading(false);
@@ -161,8 +169,8 @@ export default function CreatePoll() {
     while (fields.length > 0) {
       remove(0);
     }
-   append({ text: '' });
-   append({ text: '' });
+    append({ text: '' });
+    append({ text: '' });
   };
 
   return (
@@ -481,7 +489,7 @@ export default function CreatePoll() {
                       loading={loading}
                       disabled={!isValidForm || loading}
                       size="lg"
-                      className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-purple-600 hover:from-green-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                      className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
                       {loading ? (
                         <span className="flex items-center">

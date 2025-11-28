@@ -88,7 +88,7 @@ export default function PollDetail() {
           setTimeout(() => setSuccess(''), 2000);
         } else {
           const errorData = await response.json();
-          console.error('❌ PollDetail: Failed to fetch poll:', response.status, errorData);
+          console.error('PollDetail: Failed to fetch poll:', response.status, errorData);
           
           if (response.status === 404) {
             setError(`Poll not found. The poll "${pollId}" doesn't exist or may have been deleted.`);
@@ -99,7 +99,7 @@ export default function PollDetail() {
           }
         }
       } catch (error) {
-        console.error('❌ PollDetail: Network error:', error);
+        console.error('PollDetail: Network error:', error);
         setError('Network error. Please check your connection and try again.');
       }
     };
@@ -161,7 +161,7 @@ export default function PollDetail() {
         setError(errorData.error || 'Failed to submit vote. Please try again.');
       }
     } catch (error) {
-      console.error('❌ PollDetail: Vote submission error:', error);
+      console.error('PollDetail: Vote submission error:', error);
       setError('Network error. Please check your connection and try again.');
     } finally {
       setVoteLoading(null);

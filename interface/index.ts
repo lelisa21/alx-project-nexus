@@ -4,7 +4,7 @@ export interface User {
   name: string;
   avatar?: string;
   createdAt: string;
-   updatedAt?: string;
+  updatedAt?: string;
 }
 
 export interface Poll {
@@ -12,7 +12,7 @@ export interface Poll {
   question: string;
   description?: string; 
   options: PollOption[];
-  createdBy: string;
+  createdBy?: string;
   createdByUser?: { 
     id?: string;
     name: string;
