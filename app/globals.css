@@ -51,7 +51,7 @@
   .card {
     @apply bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200;
     
-    /* Dark mode variant */
+
     .dark & {
       @apply bg-gray-800 border-gray-700 text-white;
     }
@@ -60,7 +60,7 @@
   .input-primary {
     @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 transition-colors duration-200;
     
-    /* Dark mode variant */
+  
     .dark & {
       @apply bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:ring-indigo-400 focus:border-indigo-400;
     }
