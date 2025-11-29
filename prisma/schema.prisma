@@ -9,11 +9,13 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  email         String   @unique
+  name          String?
+  password      String?         // For login via credentials
+  emailVerified DateTime?       // Needed for NextAuth email verification
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   polls Poll[]
   votes Vote[]

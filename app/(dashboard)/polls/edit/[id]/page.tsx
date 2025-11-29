@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useRouter, useParams } from 'next/navigation';
 import { 
-  Plus, Trash2, ArrowLeft, Lightbulb, Zap, 
+  Plus, Trash2, ArrowLeft, Lightbulb, 
   BarChart3, Settings, Globe, Users, Shield, Calendar,
-  Save, Edit,Eye
+  Save, Edit, Eye
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -58,7 +58,7 @@ export default function EditPoll() {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: 'options',
   });
@@ -70,28 +70,18 @@ export default function EditPoll() {
   const canAddMore = options.length < 8;
   const hasEmptyOptions = options.some(option => !option.text.trim());
   const isValidForm = !hasEmptyOptions && question.trim() && options.length >= 2;
-  const hasChanges = watch() !== undefined; // You might want to implement more sophisticated change detection
 
-  // Fetch poll data for editing
   useEffect(() => {
     const fetchPollForEdit = async () => {
       try {
         setFetchLoading(true);
         
-        // First check if poll exists in Redux store
-        const existingPoll = polls.find(poll => poll.id === pollId);
-        
-        if (existingPoll) {
-          populateForm(existingPoll);
+        const response = await fetch(`/api/polls/${pollId}`);
+        if (response.ok) {
+          const pollData = await response.json();
+          populateForm(pollData);
         } else {
-          // Fetch from API if not in store
-          const response = await fetch(`/api/polls/${pollId}`);
-          if (response.ok) {
-            const pollData = await response.json();
-            populateForm(pollData);
-          } else {
-            throw new Error('Poll not found');
-          }
+          throw new Error('Poll not found');
         }
       } catch (error) {
         console.error('Failed to fetch poll for editing:', error);
@@ -105,34 +95,21 @@ export default function EditPoll() {
     if (pollId && user) {
       fetchPollForEdit();
     }
-  }, [pollId, user, router, polls]);
+  }, [pollId, user, router]);
 
   const populateForm = (pollData: any) => {
-    // Check if user owns this poll
-    if (pollData.createdBy !== user?.id) {
-      alert('You can only edit polls that you created.');
-      router.push('/dashboard');
-      return;
-    }
-
-    setValue('question', pollData.question);
+    // Set basic fields
+    setValue('question', pollData.question || '');
     setValue('description', pollData.description || '');
     
-    // Set options
+    // Set options using replace
     if (pollData.options && Array.isArray(pollData.options)) {
-      // Clear existing options
-      while (fields.length > 0) {
-        remove(0);
-      }
-      
-      // Add poll options
-      pollData.options.forEach((option: any) => {
-        append({ 
-          id: option.id,
-          text: option.text,
-          votes: option.votes || 0
-        });
-      });
+      const formattedOptions = pollData.options.map((option: any) => ({
+        id: option.id,
+        text: option.text || '',
+        votes: option.votes || 0
+      }));
+      replace(formattedOptions);
     }
 
     // Set settings
@@ -156,18 +133,17 @@ export default function EditPoll() {
     setLoading(true);
     try {
       const pollData = {
-        question: data.question,
-        description: data.description,
-        options: data.options.filter(opt => opt.text.trim()).map(opt => ({
-          id: opt.id, // Preserve existing IDs for votes
-          text: opt.text.trim(),
-          votes: opt.votes || 0
-        })),
+        question: data.question.trim(),
+        description: data.description?.trim() || '',
+        options: data.options
+          .filter(opt => opt.text.trim())
+          .map(opt => ({
+            id: opt.id,
+            text: opt.text.trim(),
+            votes: opt.votes || 0
+          })),
         settings: pollSettings,
-        updatedAt: new Date().toISOString(),
       };
-
-      console.log('Updating poll:', pollData);
 
       const response = await fetch(`/api/polls/${pollId}`, {
         method: 'PUT',
@@ -175,15 +151,15 @@ export default function EditPoll() {
         body: JSON.stringify(pollData),
       });
 
-      const responseData = await response.json();
-
-      if (response.ok) {
-        dispatch(updatePoll({ id: pollId, ...responseData }));
-        alert('Poll updated successfully!');
-        router.push(`/polls/${pollId}`);
-      } else {
-        throw new Error(responseData.error || responseData.details || 'Failed to update poll');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update poll');
       }
+
+      const responseData = await response.json();
+      dispatch(updatePoll({ id: pollId, ...responseData }));
+      alert('Poll updated successfully!');
+      router.push(`/polls/${pollId}`);
     } catch (error: any) {
       console.error('Poll update error:', error);
       alert(error.message || 'Failed to update poll. Please try again.');
@@ -205,22 +181,7 @@ export default function EditPoll() {
   };
 
   const quickAddOptions = (presetOptions: string[]) => {
-    // Clear existing options but preserve votes if they exist
-    const existingVotes = fields.reduce((acc, field, index) => {
-      acc[index] = field.votes || 0;
-      return acc;
-    }, {} as Record<number, number>);
-
-    while (fields.length > 0) {
-      remove(0);
-    }
-
-    presetOptions.forEach((option, index) => {
-      append({ 
-        text: option,
-        votes: existingVotes[index] || 0
-      });
-    });
+    replace(presetOptions.map(option => ({ text: option })));
   };
 
   const getFormProgress = () => {
@@ -385,7 +346,7 @@ export default function EditPoll() {
                             />
                             {field.votes !== undefined && field.votes > 0 && (
                               <p className="text-xs text-gray-500 mt-1">
-                                {field.votes} current votes - changing this option may affect existing votes
+                                {field.votes} current votes
                               </p>
                             )}
                           </div>

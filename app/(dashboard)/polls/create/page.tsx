@@ -1,20 +1,35 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import { 
-  Plus, Trash2, ArrowLeft, Lightbulb, Zap, 
-  BarChart3, Settings, Globe, Users, Shield, Calendar
-} from 'lucide-react';
-import Link from 'next/link';
-import { useAppDispatch , useAppSelector } from '@/store/hooks';
-import { addPoll } from '@/features/polls/pollsSlice';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { Toggle } from '@/components/ui/Toggle';
+import { useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import {
+  Plus,
+  Trash2,
+  ArrowLeft,
+  Lightbulb,
+  Zap,
+  BarChart3,
+  Settings,
+  Globe,
+  Users,
+  Shield,
+  Calendar,
+} from "lucide-react";
+import Link from "next/link";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { addPoll } from "@/features/polls/pollsSlice";
+import { Button } from "@/components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
+import { Toggle } from "@/components/ui/Toggle";
 
 interface PollFormData {
   question: string;
@@ -38,78 +53,109 @@ export default function CreatePoll() {
     allowMultipleVotes: false,
     requireEmail: false,
     showResults: true,
-    endDate: '',
+    endDate: "",
   });
 
   const router = useRouter();
   const dispatch = useAppDispatch();
- const {user} = useAppSelector(state => state.auth);
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<PollFormData>({
+  const { user } = useAppSelector((state) => state.auth);
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<PollFormData>({
     defaultValues: {
-      question: '',
-      description: '',
-      options: [{ text: '' }, { text: '' }],
+      question: "",
+      description: "",
+      options: [{ text: "" }, { text: "" }],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'options',
+    name: "options",
   });
 
-  const options = watch('options');
-  const question = watch('question');
-  const description = watch('description');
+  const options = watch("options");
+  const question = watch("question");
+  const description = watch("description");
 
   const canAddMore = options.length < 8;
-  const hasEmptyOptions = options.some(option => !option.text.trim());
-  const isValidForm = !hasEmptyOptions && question.trim() && options.length >= 2;
+  const hasEmptyOptions = options.some((option) => !option.text.trim());
+  const isValidForm =
+    !hasEmptyOptions && question.trim() && options.length >= 2;
 
   const onSubmit = async (data: PollFormData) => {
     setLoading(true);
     try {
+      const validatedOptions = data.options
+        .filter((opt) => opt.text.trim())
+        .map((opt) => ({
+          text: opt.text.trim(),
+          votes: 0,
+        }));
+
+      if (validatedOptions.length < 2) {
+        throw new Error("At least 2 valid options are required");
+      }
+
       const pollData = {
         question: data.question,
-        description: data.description,
-        options: data.options.filter(opt => opt.text.trim()),
+        description: data.description || "",
+        options: validatedOptions,
         settings: pollSettings,
         createdBy: user?.id || null,
       };
 
-      console.log('Creating poll:', pollData);
+      console.log("Creating poll:", pollData);
 
-      const response = await fetch('/api/polls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/polls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pollData),
       });
 
       const responseData = await response.json();
 
-      if (response.ok) {
-        dispatch(addPoll(responseData));
-        router.push(`/polls/${responseData.id}`);
-      } else {
-        throw new Error(responseData.error || responseData.details || 'Failed to create poll');
-      }
-    } catch (error: any) {
-      console.error('Poll creation error:', error);
-      alert(error.message || 'Failed to create poll. Please try again.');
-    } finally {
+       if (!response.ok) {
+      throw new Error(responseData.details || responseData.error || 'Failed to create poll');
+    }
+
+    dispatch(addPoll(responseData));
+    router.push(`/polls/${responseData.id}`);
+    
+  } catch (error: any) {
+    console.error('Poll creation error:', error);
+    alert(`Error: ${error.message}`);
+  } finally {
       setLoading(false);
     }
   };
 
   const addOption = () => {
     if (canAddMore) {
-      append({ text: '' });
+      append({ text: "" });
     }
   };
 
   const presetTemplates = {
-    rating: ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'],
-    agreement: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-    satisfaction: ['Very Unsatisfied', 'Unsatisfied', 'Neutral', ' Satisfied', 'Very Satisfied'],
+    rating: ["Poor", "Fair", "Good", "Very Good", "Excellent"],
+    agreement: [
+      "Strongly Disagree",
+      "Disagree",
+      "Neutral",
+      "Agree",
+      "Strongly Agree",
+    ],
+    satisfaction: [
+      "Very Unsatisfied",
+      "Unsatisfied",
+      "Neutral",
+      " Satisfied",
+      "Very Satisfied",
+    ],
   };
 
   const quickAddOptions = (presetOptions: string[]) => {
@@ -117,7 +163,7 @@ export default function CreatePoll() {
       remove(0);
     }
 
-    presetOptions.forEach(option => {
+    presetOptions.forEach((option) => {
       append({ text: option });
     });
   };
@@ -153,21 +199,27 @@ export default function CreatePoll() {
               </p>
             </div>
           </div>
-          
+
           {/* Quick Stats */}
           <div className="flex items-center space-x-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-white/20 dark:border-gray-700/20">
             <div className="text-center">
-              <div className="text-2xl font-bold text-indigo-600">{options.length}</div>
+              <div className="text-2xl font-bold text-indigo-600">
+                {options.length}
+              </div>
               <div className="text-xs text-gray-500">Options</div>
             </div>
             <div className="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{8 - options.length}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {8 - options.length}
+              </div>
               <div className="text-xs text-gray-500">Available</div>
             </div>
             <div className="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{getFormProgress()}%</div>
+              <div className="text-2xl font-bold text-purple-600">
+                {getFormProgress()}%
+              </div>
               <div className="text-xs text-gray-500">Complete</div>
             </div>
           </div>
@@ -194,12 +246,16 @@ export default function CreatePoll() {
                       Poll Question *
                     </label>
                     <Input
-                      {...register('question', { required: 'Question is required' })}
+                      {...register("question", {
+                        required: "Question is required",
+                      })}
                       placeholder="What's your favorite programming language?"
                       className="text-lg py-3 px-4 border-2 focus:border-indigo-500 transition-colors"
                     />
                     {errors.question && (
-                      <p className="text-red-600 text-sm font-medium">{errors.question.message}</p>
+                      <p className="text-red-600 text-sm font-medium">
+                        {errors.question.message}
+                      </p>
                     )}
                   </div>
 
@@ -209,7 +265,7 @@ export default function CreatePoll() {
                       Description (Optional)
                     </label>
                     <textarea
-                      {...register('description')}
+                      {...register("description")}
                       rows={3}
                       className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-200 resize-none text-lg"
                       placeholder="Add context or additional information about your poll..."
@@ -227,42 +283,52 @@ export default function CreatePoll() {
                         <span className="text-sm text-gray-500 font-medium">
                           {options.length}/8 options
                         </span>
-                        <Badge variant={hasEmptyOptions ? "warning" : "success"} className="text-sm">
+                        <Badge
+                          variant={hasEmptyOptions ? "warning" : "success"}
+                          className="text-sm"
+                        >
                           {hasEmptyOptions ? "Incomplete" : "Ready"}
                         </Badge>
                       </div>
                     </div>
-                    
+
                     {/* Quick Templates */}
                     <div className="space-y-3">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick Templates:</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Quick Templates:
+                      </span>
                       <div className="flex flex-wrap gap-3">
-                        {Object.entries(presetTemplates).map(([key, template]) => (
-                          <Button
-                            key={key}
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => quickAddOptions(template)}
-                            className="text-sm capitalize border-2 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                          >
-                            {key}
-                          </Button>
-                        ))}
+                        {Object.entries(presetTemplates).map(
+                          ([key, template]) => (
+                            <Button
+                              key={key}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => quickAddOptions(template)}
+                              className="text-sm capitalize border-2 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                            >
+                              {key}
+                            </Button>
+                          )
+                        )}
                       </div>
                     </div>
 
                     {/* Options List */}
                     <div className="space-y-3">
                       {fields.map((field, index) => (
-                        <div key={field.id} className="flex items-center space-x-4 group">
+                        <div
+                          key={field.id}
+                          className="flex items-center space-x-4 group"
+                        >
                           <div className="shrink-0 w-8 h-8 flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 font-bold text-sm">
                             {index + 1}
                           </div>
                           <div className="flex-1">
                             <Input
-                              {...register(`options.${index}.text`, { 
-                                required: 'Option text is required' 
+                              {...register(`options.${index}.text`, {
+                                required: "Option text is required",
                               })}
                               placeholder={`Option ${index + 1}`}
                               className="text-lg py-3 border-2 focus:border-indigo-500 transition-colors"
@@ -304,13 +370,31 @@ export default function CreatePoll() {
                       onClick={() => setShowAdvanced(!showAdvanced)}
                       className="flex items-center space-x-3 text-lg font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors w-full group"
                     >
-                      <div className={`p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/50 transition-colors ${showAdvanced ? 'rotate-180' : ''}`}>
+                      <div
+                        className={`p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/50 transition-colors ${
+                          showAdvanced ? "rotate-180" : ""
+                        }`}
+                      >
                         <Settings className="h-5 w-5" />
                       </div>
                       <span>Advanced Settings</span>
-                      <div className={`transform transition-transform ${showAdvanced ? 'rotate-180' : ''} ml-auto`}>
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <div
+                        className={`transform transition-transform ${
+                          showAdvanced ? "rotate-180" : ""
+                        } ml-auto`}
+                      >
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </div>
                     </button>
@@ -321,7 +405,7 @@ export default function CreatePoll() {
                           <Settings className="h-5 w-5 mr-2 text-indigo-600" />
                           Poll Settings
                         </h4>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-4">
                             <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-600">
@@ -330,11 +414,18 @@ export default function CreatePoll() {
                                   <Globe className="h-4 w-4 mr-2" />
                                   Public Poll
                                 </label>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">Anyone can see and vote</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  Anyone can see and vote
+                                </p>
                               </div>
                               <Toggle
                                 checked={pollSettings.isPublic}
-                                onCheckedChange={(checked) => setPollSettings(prev => ({ ...prev, isPublic: checked }))}
+                                onCheckedChange={(checked) =>
+                                  setPollSettings((prev) => ({
+                                    ...prev,
+                                    isPublic: checked,
+                                  }))
+                                }
                               />
                             </div>
 
@@ -344,11 +435,18 @@ export default function CreatePoll() {
                                   <Users className="h-4 w-4 mr-2" />
                                   Multiple Votes
                                 </label>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">Allow users to vote multiple times</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  Allow users to vote multiple times
+                                </p>
                               </div>
                               <Toggle
                                 checked={pollSettings.allowMultipleVotes}
-                                onCheckedChange={(checked) => setPollSettings(prev => ({ ...prev, allowMultipleVotes: checked }))}
+                                onCheckedChange={(checked) =>
+                                  setPollSettings((prev) => ({
+                                    ...prev,
+                                    allowMultipleVotes: checked,
+                                  }))
+                                }
                               />
                             </div>
                           </div>
@@ -360,11 +458,18 @@ export default function CreatePoll() {
                                   <Shield className="h-4 w-4 mr-2" />
                                   Require Email
                                 </label>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">Voters must provide email</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  Voters must provide email
+                                </p>
                               </div>
                               <Toggle
                                 checked={pollSettings.requireEmail}
-                                onCheckedChange={(checked) => setPollSettings(prev => ({ ...prev, requireEmail: checked }))}
+                                onCheckedChange={(checked) =>
+                                  setPollSettings((prev) => ({
+                                    ...prev,
+                                    requireEmail: checked,
+                                  }))
+                                }
                               />
                             </div>
 
@@ -374,11 +479,18 @@ export default function CreatePoll() {
                                   <BarChart3 className="h-4 w-4 mr-2" />
                                   Show Results
                                 </label>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">Display results to voters</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  Display results to voters
+                                </p>
                               </div>
                               <Toggle
                                 checked={pollSettings.showResults}
-                                onCheckedChange={(checked) => setPollSettings(prev => ({ ...prev, showResults: checked }))}
+                                onCheckedChange={(checked) =>
+                                  setPollSettings((prev) => ({
+                                    ...prev,
+                                    showResults: checked,
+                                  }))
+                                }
                               />
                             </div>
                           </div>
@@ -393,7 +505,12 @@ export default function CreatePoll() {
                           <Input
                             type="datetime-local"
                             value={pollSettings.endDate}
-                            onChange={(e) => setPollSettings(prev => ({ ...prev, endDate: e.target.value }))}
+                            onChange={(e) =>
+                              setPollSettings((prev) => ({
+                                ...prev,
+                                endDate: e.target.value,
+                              }))
+                            }
                             className="border-2 focus:border-indigo-500 transition-colors"
                           />
                         </div>
@@ -403,14 +520,14 @@ export default function CreatePoll() {
 
                   {/* Submit Button */}
                   <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       loading={loading}
                       disabled={!isValidForm || loading}
                       size="lg"
                       className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
-                      {loading ? 'Creating Poll...' : 'Create Poll'}
+                      {loading ? "Creating Poll..." : "Create Poll"}
                     </Button>
                   </div>
                 </form>
@@ -431,19 +548,28 @@ export default function CreatePoll() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm font-medium">
-                    <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                    <span className="text-indigo-600 dark:text-indigo-400">{getFormProgress()}%</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Progress
+                    </span>
+                    <span className="text-indigo-600 dark:text-indigo-400">
+                      {getFormProgress()}%
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div 
+                    <div
                       className="bg-linear-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${getFormProgress()}%` }}
                     ></div>
                   </div>
                 </div>
                 <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</span>
-                  <Badge variant={isValidForm ? "success" : "warning"} className="text-sm">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Status
+                  </span>
+                  <Badge
+                    variant={isValidForm ? "success" : "warning"}
+                    className="text-sm"
+                  >
                     {isValidForm ? "Ready" : "Incomplete"}
                   </Badge>
                 </div>
@@ -462,15 +588,21 @@ export default function CreatePoll() {
                 <ul className="text-sm space-y-3">
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 mr-3 shrink-0"></div>
-                    <span className="text-gray-700 dark:text-gray-300">Keep questions clear and concise</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Keep questions clear and concise
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 mr-3 shrink-0"></div>
-                    <span className="text-gray-700 dark:text-gray-300">Use 4-6 options for optimal engagement</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Use 4-6 options for optimal engagement
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 mr-3 shrink-0"></div>
-                    <span className="text-gray-700 dark:text-gray-300">Make options mutually exclusive</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Make options mutually exclusive
+                    </span>
                   </li>
                 </ul>
               </CardContent>

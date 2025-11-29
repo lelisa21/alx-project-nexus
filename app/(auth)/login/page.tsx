@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -6,13 +7,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppDispatch } from '@/store/hooks';
 import { setUser } from '@/features/auth/authSlice';
-import GoHome from '@/components/ui/GoHome';
 import { Eye, EyeOff, Mail, Lock, Github, Chrome } from 'lucide-react';
 import { loginSchema, type LoginInput } from '@/lib/schemas/auth';
+import { signIn } from 'next-auth/react';
+import GoHome from '@/components/ui/GoHome';
 
-export default function Login() {
+export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
 
@@ -25,9 +28,11 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   });
 
+  // -------------------------------
+  // Email/Password Login Handler
+  // -------------------------------
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
-    console.log("Log in Attempt : " , data);
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -37,9 +42,18 @@ export default function Login() {
 
       if (response.ok) {
         const user = await response.json();
+
+        // Check if email is confirmed
+        if (!user.emailConfirmed) {
+          setEmailSent(true);
+          return;
+        }
+
+        // Save user in Redux
         dispatch(setUser(user));
+
         router.push('/dashboard');
-         router.refresh();
+        router.refresh();
       } else {
         const error = await response.json();
         setError('root', { message: error.message || 'Login failed' });
@@ -51,30 +65,45 @@ export default function Login() {
     }
   };
 
-  const handleOAuth = (provider: string) => {
-    window.location.href = `/api/auth/${provider}`;
+  // -------------------------------
+  // OAuth Handler
+  // -------------------------------
+  const handleOAuth = (provider: 'google' | 'github') => {
+    signIn(provider, { callbackUrl: '/dashboard' });
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center  p-4 w-full">
-      <div className="max-w-[60%] w-full">
-      
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 w-full">
+      <div className="max-w-md w-full">
         {/* Back to Home */}
         <GoHome />
 
         {/* Login Card */}
-        <div className="card p-10 w-full">
-          <div className="text-center mb-8 dark:text-white">
+        <div className="card p-10 w-full shadow-xl rounded-xl bg-white dark:bg-gray-800">
+          <div className="text-center mb-8">
             <div className="w-16 h-16 bg-linear-to-r from-indigo-500/80 to-black rounded-xl flex items-center justify-center mx-auto mb-4">
               <Lock className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">Welcome back!</h1>
-            <p className="text-gray-700 dark:text-gray-300">Sign in to your account to continue</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">
+              Welcome back!
+            </h1>
+            <p className="text-gray-700 dark:text-gray-300">
+              Sign in to your account to continue
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {emailSent && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center">
+              <p className="text-blue-600">
+                A confirmation email has been sent. Please check your inbox to verify your email.
+              </p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <div className="relative">
@@ -82,8 +111,9 @@ export default function Login() {
                 <input
                   {...register('email')}
                   type="email"
-                  className="input-primary pl-10"
                   placeholder="Enter your email"
+                  className="input-primary pl-10"
+                  disabled={emailSent}
                 />
               </div>
               {errors.email && (
@@ -91,8 +121,9 @@ export default function Login() {
               )}
             </div>
 
+            {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -100,8 +131,9 @@ export default function Login() {
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  className="input-primary pl-10 pr-10"
                   placeholder="Enter your password"
+                  className="input-primary pl-10 pr-10"
+                  disabled={emailSent}
                 />
                 <button
                   type="button"
@@ -116,15 +148,17 @@ export default function Login() {
               )}
             </div>
 
+            {/* Form error */}
             {errors.root && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="text-sm text-red-600 text-center">{errors.root.message}</p>
               </div>
             )}
 
+            {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || emailSent}
               className="w-full btn-primary py-3 text-base"
             >
               {loading ? (
@@ -145,7 +179,9 @@ export default function Login() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 text-md ">Or continue with</span>
+                <span className="px-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800">
+                  Or continue with
+                </span>
               </div>
             </div>
 
@@ -167,9 +203,13 @@ export default function Login() {
             </div>
           </div>
 
+          {/* Signup link */}
           <p className="mt-8 text-center text-sm text-gray-600">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className=" hover:text-teal-400 text-teal-600 font-medium transform-transition duration-300">
+            <Link
+              href="/register"
+              className="hover:text-teal-400 text-teal-600 font-medium transition-colors duration-300"
+            >
               Sign up
             </Link>
           </p>

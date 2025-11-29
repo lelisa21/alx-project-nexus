@@ -2,13 +2,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+function isValidObjectId(id: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(id);
+}
+
 export async function GET() {
   try {
     const polls = await prisma.poll.findMany({
       include: {
         options: {
           orderBy: { votes: "desc" },
-          // Remove any poll relation includes here
         },
         settings: true,
         user: {
@@ -18,7 +21,6 @@ export async function GET() {
             email: true,
           },
         },
-        // Add votes count if needed, but be careful with relations
         votes: {
           select: {
             id: true,
@@ -30,12 +32,10 @@ export async function GET() {
       },
     });
 
-    // Transform the data to avoid circular references
-    const safePolls = polls.map(poll => ({
+    const safePolls = polls.map((poll) => ({
       ...poll,
-      options: poll.options.map(option => ({
+      options: poll.options.map((option) => ({
         ...option,
-        // Ensure no circular references
       })),
     }));
 
@@ -96,16 +96,23 @@ export async function POST(request: NextRequest) {
 
     // Handle user connection if provided
     if (body.createdBy) {
-      const user = await prisma.user.findUnique({
-        where: { id: body.createdBy },
-      });
+      try {
+        if (isValidObjectId(body.createdBy)) {
+          const user = await prisma.user.findUnique({
+            where: { id: body.createdBy },
+          });
 
-      if (user) {
-        pollData.user = {
-          connect: { id: body.createdBy },
-        };
-        pollData.isAnonymous = false;
-        pollData.createdBy = body.createdBy;
+          if (user) {
+            pollData.user = {
+              connect: { id: body.createdBy },
+            };
+            pollData.isAnonymous = false;
+          }
+        } else {
+          console.log('⚠️ Invalid user ID format, creating anonymous poll');
+        }
+      } catch (error) {
+        console.error('Error connecting user to poll:', error);
       }
     }
 

@@ -1,48 +1,60 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { prisma } from "@prisma/sch"; // your prisma client
 
-// Simple in-memory storage for demo
-// eslint-disable-next-line prefer-const, @typescript-eslint/no-explicit-any
-let users: any[] = [];
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { name, email, password } = await request.json();
-    
-    console.log('Registration attempt:', { name, email });
-    
-    // Basic validation
+    const body = await req.json();
+    const { name, email, password } = body;
+
+    console.log("Registration attempt:", { name, email });
+
+    // Validate input
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: 'Name, email, and password are required' },
+        { error: "All fields are required." },
         { status: 400 }
       );
     }
 
-    // Check if user already exists
-    if (users.find(user => user.email === email)) {
+    // Check duplicate
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this email already exists' },
+        { error: "User already exists with this email." },
         { status: 400 }
       );
     }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = {
-      id: Date.now().toString(),
-      name,
-      email,
-      createdAt: new Date().toISOString(),
-    };
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        emailVerified: null,
+      },
+    });
 
-    users.push(user);
+    console.log("User created:", newUser);
 
-    console.log('Registration successful:', user);
+    // *Optional* => Send email verification
+    // await sendVerificationEmail(newUser.email, token);
 
-    return NextResponse.json(user);
-  } catch (error) {
-    console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'Registration failed' },
+      { message: "User registered successfully. Please log in." },
+      { status: 201 }
+    );
+  } catch (err) {
+    console.error("Register error:", err);
+    return NextResponse.json(
+      { error: "Something went wrong." },
       { status: 500 }
     );
   }

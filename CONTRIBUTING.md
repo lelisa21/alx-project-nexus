@@ -1,14 +1,26 @@
 #  Pollify - Real-time Polling Platform
-
-
-![Pollify Banner](https://via.placeholder.com/1200x400/6366f1/ffffff?text=Pollify+-+Real-time+Polling+Made+Beautiful)
-
-
-A modern, real-time polling application built with **Next.js 14**, **TypeScript**, and **Tailwind CSS**. Create engaging polls with live results, beautiful charts, and instant updates.
+A modern, real-time polling application built with **Next.js 16**, **TypeScript**, and **Tailwind CSS**. Create engaging polls with live results, beautiful charts, and instant updates.
 
 
 ## Features
 
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/auth/register
+├ ƒ /api/polls
+├ ƒ /api/polls/[id]
+├ ○ /dashboard
+├ ○ /login
+├ ○ /polls
+├ ƒ /polls/[id]
+├ ○ /polls/create
+├ ƒ /polls/edit/[id]
+├ ○ /profile
+└ ○ /register
 
 ###  Core Features
 
@@ -40,8 +52,6 @@ A modern, real-time polling application built with **Next.js 14**, **TypeScript*
 - **Redux Toolkit** - State management
 - **React Hook Form** - Form handling
 - **Lucide React** - Beautiful icons
-
-
 ### Backend Ready
 
 
@@ -186,6 +196,7 @@ pollify/
 3. Add question and options
 4. Share the poll link
 5. Watch real-time results
+6. Edit Your Poll everywhere
 
 
 ### Voting on a Poll

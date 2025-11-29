@@ -1,8 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 function isValidObjectId(id: string): boolean {
   return /^[0-9a-fA-F]{24}$/.test(id);
+}
+
+// Helper to extract params
+async function getParams(params: Promise<{ id: string }>) {
+  return await params;
 }
 
 export async function GET(
@@ -10,12 +15,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    console.log('🔍 Fetching poll:', id);
-
+    const { id } = await getParams(params);
+    
     if (!isValidObjectId(id)) {
       return NextResponse.json(
-        { error: 'Invalid poll ID format' },
+        { error: "Invalid poll ID format" },
         { status: 400 }
       );
     }
@@ -24,30 +28,135 @@ export async function GET(
       where: { id },
       include: {
         options: {
-          orderBy: { votes: 'desc' }
+          orderBy: { votes: "desc" },
         },
-        settings: true
-      }
+        settings: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
 
     if (!poll) {
-      return NextResponse.json(
-        { error: 'Poll not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Poll not found" }, { status: 404 });
     }
 
     // Increment views
     await prisma.poll.update({
       where: { id },
-      data: { views: { increment: 1 } }
+      data: { views: { increment: 1 } },
     });
 
     return NextResponse.json(poll);
   } catch (error: any) {
-    console.error('GET /api/polls/[id] Error:', error);
+    console.error("GET /api/polls/[id] Error:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch poll: ' + error.message },
+      { error: "Failed to fetch poll: " + error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await getParams(params);
+    const body = await request.json();
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        { error: "Invalid poll ID format" },
+        { status: 400 }
+      );
+    }
+
+    // Verify poll exists
+    const existingPoll = await prisma.poll.findUnique({
+      where: { id },
+      include: { options: true },
+    });
+
+    if (!existingPoll) {
+      return NextResponse.json({ error: "Poll not found" }, { status: 404 });
+    }
+
+    // Build update data
+    const updateData: any = {
+      question: body.question,
+      description: body.description,
+      updatedAt: new Date(),
+    };
+
+    // Handle settings
+    if (body.settings) {
+      updateData.settings = {
+        upsert: {
+          create: {
+            isPublic: Boolean(body.settings.isPublic),
+            allowMultipleVotes: Boolean(body.settings.allowMultipleVotes),
+            requireEmail: Boolean(body.settings.requireEmail),
+            showResults: Boolean(body.settings.showResults),
+            endDate: body.settings.endDate ? new Date(body.settings.endDate) : null,
+          },
+          update: {
+            isPublic: Boolean(body.settings.isPublic),
+            allowMultipleVotes: Boolean(body.settings.allowMultipleVotes),
+            requireEmail: Boolean(body.settings.requireEmail),
+            showResults: Boolean(body.settings.showResults),
+            endDate: body.settings.endDate ? new Date(body.settings.endDate) : null,
+          },
+        },
+      };
+    }
+
+    // Handle options update
+    if (body.options && Array.isArray(body.options)) {
+      // Delete existing options
+      await prisma.option.deleteMany({
+        where: { pollId: id },
+      });
+
+      // Create new options
+      updateData.options = {
+        create: body.options.map((opt: any) => ({
+          text: opt.text,
+          votes: opt.votes || 0,
+        })),
+      };
+    }
+
+    // Update the poll
+    const updatedPoll = await prisma.poll.update({
+      where: { id },
+      data: updateData,
+      include: {
+        options: {
+          orderBy: { votes: "desc" },
+        },
+        settings: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(updatedPoll);
+  } catch (error: any) {
+    console.error("PUT /api/polls/[id] Error:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to update poll: " + error.message,
+      },
       { status: 500 }
     );
   }
@@ -58,32 +167,29 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id } = await getParams(params);
     const { optionId, voterId } = await request.json();
-
-    console.log('🗳️ Voting on poll:', id, 'option:', optionId);
 
     if (!isValidObjectId(id) || !isValidObjectId(optionId)) {
       return NextResponse.json(
-        { error: 'Invalid poll or option ID' },
+        { error: "Invalid poll or option ID" },
         { status: 400 }
       );
     }
 
-    // Check if poll exists
     const poll = await prisma.poll.findUnique({
       where: { id },
-      include: { 
+      include: {
         settings: true,
         options: {
-          where: { id: optionId }
-        }
-      }
+          where: { id: optionId },
+        },
+      },
     });
 
     if (!poll || poll.options.length === 0) {
       return NextResponse.json(
-        { error: 'Poll or option not found' },
+        { error: "Poll or option not found" },
         { status: 404 }
       );
     }
@@ -93,13 +199,13 @@ export async function POST(
       const existingVote = await prisma.vote.findFirst({
         where: {
           pollId: id,
-          voterId: voterId
-        }
+          voterId: voterId,
+        },
       });
 
       if (existingVote) {
         return NextResponse.json(
-          { error: 'You have already voted on this poll' },
+          { error: "You have already voted on this poll" },
           { status: 400 }
         );
       }
@@ -108,12 +214,12 @@ export async function POST(
     // Update votes
     await prisma.option.update({
       where: { id: optionId },
-      data: { votes: { increment: 1 } }
+      data: { votes: { increment: 1 } },
     });
 
     await prisma.poll.update({
       where: { id },
-      data: { totalVotes: { increment: 1 } }
+      data: { totalVotes: { increment: 1 } },
     });
 
     // Record vote
@@ -122,32 +228,30 @@ export async function POST(
         data: {
           optionId,
           pollId: id,
-          voterId
-        }
+          voterId,
+        },
       });
     }
 
-    // Get updated poll
     const updatedPoll = await prisma.poll.findUnique({
       where: { id },
       include: {
         options: {
-          orderBy: { votes: 'desc' }
+          orderBy: { votes: "desc" },
         },
-        settings: true
-      }
+        settings: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
       poll: updatedPoll,
-      votedOption: optionId
+      votedOption: optionId,
     });
-
   } catch (error: any) {
-    console.error('POST /api/polls/[id] Error:', error);
+    console.error("POST /api/polls/[id] Error:", error);
     return NextResponse.json(
-      { error: 'Failed to submit vote: ' + error.message },
+      { error: "Failed to submit vote: " + error.message },
       { status: 500 }
     );
   }
