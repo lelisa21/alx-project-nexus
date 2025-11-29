@@ -1,4 +1,4 @@
-// components/ui/Toggle.tsx - Enhanced version
+
 'use client';
 
 import { cn } from '@/lib/utils';

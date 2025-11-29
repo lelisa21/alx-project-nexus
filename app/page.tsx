@@ -39,14 +39,15 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen  bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen  bg-linear-to-br from-blue-50 via-white to-indigo-50">
       {/* Navigation */}
       <div className='app-background w-full'>
-      <nav className=" backdrop-blur-md  border-gray-200 sticky top-3 z-50">
+      <nav className=" backdrop-blur-md  border-gray-200 sticky top-2 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            <Link href={"/"} >
             <Image src="/logo.png" alt="logo" width={150} height={60} priority />
-            
+            </Link>
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
                 <>
@@ -76,7 +77,7 @@ export default function Home() {
           <div className="animate-in">
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
               Create Polls That
-              <span className="block bg-gradient-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent">
+              <span className="block bg-linear-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent">
                 Live & Breathe
               </span>
             </h1>
@@ -145,7 +146,7 @@ export default function Home() {
                 className="card p-6 text-center group hover:scale-105 transition-transform duration-200 animate-in"
                 style={{ animationDelay: `${index * 150}ms` }}
               >
-                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500/80 to-black rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 bg-linear-to-r from-indigo-500/80 to-black rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg transition-shadow">
                   <feature.icon className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 dark:text-white">
@@ -161,7 +162,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-green-400/10 to-emerald-300/15">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-linear-to-r from-green-400/10 to-emerald-300/15">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-black mb-4">
             Ready to Start Polling?

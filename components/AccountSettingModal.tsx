@@ -218,7 +218,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
               {/* Enhanced Avatar Upload */}
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${getDefaultAvatarColor(formData.name)} flex items-center justify-center text-white text-2xl font-bold relative overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg`}>
+                  <div className={`w-20 h-20 rounded-full bg-linear-to-br ${getDefaultAvatarColor(formData.name)} flex items-center justify-center text-white text-2xl font-bold relative overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg`}>
                     {avatarPreview ? (
                       <img 
                         src={avatarPreview} 

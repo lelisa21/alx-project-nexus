@@ -1,3 +1,4 @@
+// prisma/seed.ts
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -17,18 +18,21 @@ async function main() {
 
   console.log('✅ User created:', user.email);
 
-  // Clear existing data (optional)
-  await prisma.vote.deleteMany();
-  await prisma.option.deleteMany();
-  await prisma.pollSettings.deleteMany();
-  await prisma.poll.deleteMany();
+  // Clear existing data (optional - for development)
+  if (process.env.NODE_ENV !== 'production') {
+    await prisma.vote.deleteMany();
+    await prisma.option.deleteMany();
+    await prisma.pollSettings.deleteMany();
+    await prisma.poll.deleteMany();
+  }
 
-  // Create sample polls
+  // Create sample polls - using CORRECT fields from your schema
   const poll1 = await prisma.poll.create({
     data: {
       question: "What's your favorite frontend framework?",
       description: "Help us understand developer preferences in 2024",
-      createdBy: user.id,
+      userId: user.id, // Use userId instead of createdBy
+      isAnonymous: false,
       options: {
         create: [
           { text: "React", votes: 45 },
@@ -54,7 +58,8 @@ async function main() {
     data: {
       question: "Which feature do you use most in Pollify?",
       description: "We want to improve our most used features",
-      createdBy: user.id,
+      userId: user.id, // Use userId instead of createdBy
+      isAnonymous: false,
       options: {
         create: [
           { text: "Real-time results", votes: 60 },

@@ -107,7 +107,6 @@ export function PollChart({ poll, type = 'bar' }: PollChartProps) {
       if (chartRef.current) {
         const chart = chartRef.current;
         
-        // Update legend colors for dark mode
         if (chart.options.plugins.legend.labels) {
           chart.options.plugins.legend.labels.color = isDark ? '#9CA3AF' : '#6B7280';
         }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
@@ -34,19 +33,16 @@ io.on('connection', (socket) => {
 
   // Listen for transport upgrades
   socket.conn.on("upgrade", (transport) => {
-    console.log(`🔄 Socket ${socket.id} upgraded to:`, transport.name);
+    console.log(`Socket ${socket.id} upgraded to:`, transport.name);
   });
 
   socket.on('join:poll', (pollId) => {
     socket.join(pollId);
-    console.log(`🔗 Socket ${socket.id} joined poll room: ${pollId}`);
-    
-    // Send current poll state to newly joined client
+    console.log(`Socket ${socket.id} joined poll room: ${pollId}`);
     if (pollData.has(pollId)) {
       socket.emit('poll:updated', pollData.get(pollId));
       console.log(`📤 Sent existing data for poll: ${pollId}`);
     } else {
-      // Initialize with default data
       const defaultPoll = {
         id: pollId,
         question: `Poll ${pollId}`,
@@ -78,7 +74,7 @@ io.on('connection', (socket) => {
     console.log('🗳️ Vote received:', data);
 
     if (!pollData.has(pollId)) {
-      console.log(`❌ Poll ${pollId} not found`);
+      console.log(`Poll ${pollId} not found`);
       return;
     }
 
@@ -86,12 +82,11 @@ io.on('connection', (socket) => {
     const option = poll.options.find(opt => opt.id === optionId);
     
     if (option) {
-      // Update votes
       option.votes += 1;
       poll.totalVotes += 1;
       poll.updatedAt = new Date().toISOString();
       
-      console.log(`📊 Updated poll ${pollId}:`, {
+      console.log(`Updated poll ${pollId}:`, {
         option: option.text,
         votes: option.votes,
         totalVotes: poll.totalVotes
@@ -99,22 +94,21 @@ io.on('connection', (socket) => {
       
       // Broadcast updated poll to ALL clients in the room
       io.to(pollId).emit('poll:updated', poll);
-      console.log(`📢 Broadcast update to ${io.sockets.adapter.rooms.get(pollId)?.size || 0} clients in room ${pollId}`);
+      console.log(`Broadcast update to ${io.sockets.adapter.rooms.get(pollId)?.size || 0} clients in room ${pollId}`);
     } else {
-      console.log(`❌ Option ${optionId} not found in poll ${pollId}`);
+      console.log(`Option ${optionId} not found in poll ${pollId}`);
     }
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('❌ Client disconnected:', socket.id, 'Reason:', reason);
+    console.log('Client disconnected:', socket.id, 'Reason:', reason);
   });
 
   socket.on('error', (error) => {
-    console.error('🚨 Socket error:', error);
+    console.error('Socket error:', error);
   });
 });
 
-// Handle server errors
 httpServer.on('error', (error) => {
   console.error('🚨 Server error:', error);
 });
@@ -122,19 +116,19 @@ httpServer.on('error', (error) => {
 // Start the server
 httpServer.listen(PORT, () => {
   console.log(`=================================`);
-  console.log(`🚀 Socket.io Server Started!`);
-  console.log(`📍 Port: ${PORT}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
-  console.log(`🔗 Ready for connections from: http://localhost:3000`);
-  console.log(`📡 Transports: websocket, polling`);
+  console.log(` Socket.io Server Started!`);
+  console.log(` Port: ${PORT}`);
+  console.log(` URL: http://localhost:${PORT}`);
+  console.log(` Ready for connections from: http://localhost:3000`);
+  console.log(` Transports: websocket, polling`);
   console.log(`=================================`);
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down Socket.io server...');
+  console.log('\n Shutting down Socket.io server...');
   io.close(() => {
-    console.log('✅ Socket.io server closed');
+    console.log(' Socket.io server closed');
     process.exit(0);
   });
 });

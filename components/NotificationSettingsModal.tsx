@@ -44,7 +44,6 @@ export function NotificationSettingsModal({ isOpen, onClose }: NotificationSetti
   };
 
   const handleSave = () => {
-    // Save to localStorage or API
     localStorage.setItem('notificationSettings', JSON.stringify(notifications));
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);

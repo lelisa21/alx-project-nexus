@@ -135,7 +135,7 @@ export default function DashboardLayout({
             <div className="shrink-0 flex border-t border-gray-200 p-4">
               <div className="flex items-center w-full">
                 <div className="shrink-0">
-                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-10 h-10 bg-linear-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 </div>
@@ -188,10 +188,10 @@ export default function DashboardLayout({
             </div>
 
             {/* User section */}
-            <div className="flex-shrink-0 border-t border-gray-200">
+            <div className="shrink-0 border-t border-gray-200">
               <div className="flex items-center p-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                <div className="shrink-0">
+                  <div className="w-10 h-10 bg-linear-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default function DashboardLayout({
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="ml-3 flex-shrink-0 text-gray-400 hover:text-gray-500 transition-colors p-1 rounded-md hover:bg-gray-100"
+                  className="ml-3 shrink-0 text-gray-400 hover:text-gray-500 transition-colors p-1 rounded-md hover:bg-gray-100"
                   title="Sign out"
                 >
                   <LogOut className="h-4 w-4" />

@@ -7,8 +7,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppDispatch } from '@/store/hooks';
 import { setUser } from '@/features/auth/authSlice';
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Github, Chrome } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User,Github, Chrome } from 'lucide-react';
 import { registerSchema, type RegisterInput } from '@/lib/schemas/auth';
+import GoHome from '@/components/ui/GoHome';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -82,21 +83,15 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-[60%] w-full">
         {/* Back to Home */}
-        <Link
-          href="/"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-8 group"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-          Back to home
-        </Link>
+        <GoHome />
 
         {/* Register Card */}
         <div className="card p-8 ">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-linear-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <User className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Create your account</h1>
@@ -159,6 +154,7 @@ export default function Register() {
                   className="input-primary pl-10 pr-10"
                   placeholder="Create a password"
                 />
+             
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}

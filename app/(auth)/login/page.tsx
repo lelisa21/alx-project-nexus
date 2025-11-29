@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
-
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,7 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppDispatch } from '@/store/hooks';
 import { setUser } from '@/features/auth/authSlice';
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, Github, Chrome } from 'lucide-react';
+import GoHome from '@/components/ui/GoHome';
+import { Eye, EyeOff, Mail, Lock, Github, Chrome } from 'lucide-react';
 import { loginSchema, type LoginInput } from '@/lib/schemas/auth';
 
 export default function Login() {
@@ -57,30 +56,25 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 w-full">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center  p-4 w-full">
+      <div className="max-w-[60%] w-full">
+      
         {/* Back to Home */}
-        <Link
-          href="/"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-8 group"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-          Back to home
-        </Link>
+        <GoHome />
 
         {/* Login Card */}
-        <div className="card p-8 w-full">
+        <div className="card p-10 w-full">
           <div className="text-center mb-8 dark:text-white">
-            <div className="w-16 h-16 bg-gradient-to-r from-indigo-500/80 to-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-linear-to-r from-indigo-500/80 to-black rounded-xl flex items-center justify-center mx-auto mb-4">
               <Lock className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">Welcome back</h1>
-            <p className="text-gray-600">Sign in to your account to continue</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">Welcome back!</h1>
+            <p className="text-gray-700 dark:text-gray-300">Sign in to your account to continue</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <div className="relative">
@@ -98,7 +92,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -151,7 +145,7 @@ export default function Login() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 text-md ">Or continue with</span>
               </div>
             </div>
 
@@ -175,7 +169,7 @@ export default function Login() {
 
           <p className="mt-8 text-center text-sm text-gray-600">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
+            <Link href="/register" className=" hover:text-teal-400 text-teal-600 font-medium transform-transition duration-300">
               Sign up
             </Link>
           </p>

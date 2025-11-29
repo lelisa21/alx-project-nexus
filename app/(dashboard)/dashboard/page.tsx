@@ -9,8 +9,8 @@ import { useSockets } from '@/hooks/useSocket';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import PollCard from '@/components/PollCard';
-import ResultChart from '@/components/ResultChart'; // For single poll charts
-import ChartComponent from '@/components/ChartComponent'; // For custom charts
+import ResultChart from '@/components/ResultChart'; 
+import ChartComponent from '@/components/ChartComponent'; 
 import { Badge } from '@/components/ui/Badge';
 
 export default function Dashboard() {

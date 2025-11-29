@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/refs */
+   "use client"
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch } from '@/store/hooks';
@@ -33,18 +33,18 @@ export const useSockets = () => {
       socketRef.current = socket;
 
       socket.on('connect', () => {
-        console.log('✅ Successfully connected to Socket.io server:', socket.id);
+        console.log(' Successfully connected to Socket.io server:', socket.id);
         setIsConnected(true);
         setConnectionError(null);
       });
 
       socket.on('poll:updated', (updatedPoll: Poll) => {
-        console.log('📊 Real-time poll update received:', updatedPoll);
+        console.log(' Real-time poll update received:', updatedPoll);
         dispatch(updatePoll(updatedPoll));
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('❌ Disconnected from Socket.io server:', reason);
+        console.log(' Disconnected from Socket.io server:', reason);
         setIsConnected(false);
         
         if (reason === 'io server disconnect') {
@@ -67,26 +67,26 @@ export const useSockets = () => {
       });
 
       socket.on('reconnect_attempt', (attempt) => {
-        console.log(`🔄 Reconnection attempt ${attempt}`);
+        console.log(` Reconnection attempt ${attempt}`);
       });
 
       socket.on('reconnect', (attempt) => {
-        console.log(`✅ Reconnected after ${attempt} attempts`);
+        console.log(` Reconnected after ${attempt} attempts`);
         setIsConnected(true);
         setConnectionError(null);
       });
 
       socket.on('reconnect_error', (error) => {
-        console.error('🚨 Reconnection error:', error);
+        console.error(' Reconnection error:', error);
       });
 
       socket.on('reconnect_failed', () => {
-        console.error('❌ Failed to reconnect after all attempts');
+        console.error(' Failed to reconnect after all attempts');
         setConnectionError('Failed to establish connection with server');
       });
 
     } catch (error) {
-      console.error('🚨 Failed to initialize socket:', error);
+      console.error(' Failed to initialize socket:', error);
       setConnectionError('Failed to initialize socket connection');
     }
 
@@ -103,32 +103,32 @@ export const useSockets = () => {
   const joinPollRoom = useCallback((pollId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('join:poll', pollId);
-      console.log(`🔗 Joined real poll room: ${pollId}`);
+      console.log(` Joined real poll room: ${pollId}`);
     } else {
-      console.warn('⚠️ Socket not connected, cannot join room');
+      console.warn(' Socket not connected, cannot join room');
     }
   }, []);
 
   const leavePollRoom = useCallback((pollId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('leave:poll', pollId);
-      console.log(`🚪 Left real poll room: ${pollId}`);
+      console.log(`Left real poll room: ${pollId}`);
     }
   }, []);
 
   const voteInPoll = useCallback((pollId: string, optionId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('poll:vote', { pollId, optionId });
-      console.log(`🗳️ Real vote emitted: poll=${pollId}, option=${optionId}`);
+      console.log(`Real vote emitted: poll=${pollId}, option=${optionId}`);
     } else {
-      console.error('❌ Socket not connected, vote not sent');
+      console.error('Socket not connected, vote not sent');
       // Fallback to API call if socket is not connected
       fetch(`/api/polls/${pollId}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ optionId }),
       }).catch(error => {
-        console.error('❌ API vote also failed:', error);
+        console.error(' API vote also failed:', error);
       });
     }
   }, []);

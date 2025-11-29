@@ -35,10 +35,10 @@ export default function AllPolls() {
       }
       
       const pollsData = await response.json();
-      console.log('✅ Polls fetched successfully:', pollsData.length, 'polls');
+      console.log('Polls fetched successfully:', pollsData.length, 'polls');
       dispatch(setPolls(pollsData));
     } catch (error) {
-      console.error('❌ Failed to fetch polls:', error);
+      console.error('Failed to fetch polls:', error);
       setError(error instanceof Error ? error.message : 'Failed to load polls');
     } finally {
       setLoading(false);
@@ -50,7 +50,6 @@ export default function AllPolls() {
   }, [fetchPolls]);
 
   useEffect(() => {
-    // Join rooms for all polls
     polls.forEach(poll => {
       joinPollRoom(poll.id);
     });
@@ -61,8 +60,6 @@ export default function AllPolls() {
       });
     };
   }, [polls, joinPollRoom, leavePollRoom]);
-
-  // Filter user's polls if user is available
   const userPolls = user ? polls.filter(poll => poll.id === user.id) : polls;
   
   const filteredPolls = userPolls.filter(poll => {
@@ -98,7 +95,7 @@ export default function AllPolls() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 bg-gray-200 dark:bg-gray-800">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Polls</h1>
