@@ -44,7 +44,6 @@ export async function POST(req: Request) {
 
     console.log("User created:", newUser);
 
-
     return NextResponse.json(
       { message: "User registered successfully. Please log in." },
       { status: 201 }

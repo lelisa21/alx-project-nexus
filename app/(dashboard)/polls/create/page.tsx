@@ -108,28 +108,24 @@ export default function CreatePoll() {
         settings: pollSettings,
         createdBy: user?.id || null,
       };
-
-      console.log("Creating poll:", pollData);
-
       const response = await fetch("/api/polls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pollData),
       });
-
       const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          responseData.details || responseData.error || "Failed to create poll"
+        );
+      }
 
-       if (!response.ok) {
-      throw new Error(responseData.details || responseData.error || 'Failed to create poll');
-    }
-
-    dispatch(addPoll(responseData));
-    router.push(`/polls/${responseData.id}`);
-    
-  } catch (error: any) {
-    console.error('Poll creation error:', error);
-    alert(`Error: ${error.message}`);
-  } finally {
+      dispatch(addPoll(responseData));
+      router.push(`/polls/${responseData.id}`);
+    } catch (error: any) {
+      console.error("Poll creation error:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
       setLoading(false);
     }
   };

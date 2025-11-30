@@ -1,16 +1,30 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { setPolls } from '@/features/polls/pollsSlice';
-import { Plus, Search, Filter, Users, Clock, BarChart3, RefreshCw } from 'lucide-react';
-import { useSockets } from '@/hooks/useSocket';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import PollCard from '@/components/PollCard';
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { setPolls } from "@/features/polls/pollsSlice";
+import {
+  Plus,
+  Search,
+  Filter,
+  Users,
+  Clock,
+  BarChart3,
+  RefreshCw,
+} from "lucide-react";
+import { useSockets } from "@/hooks/useSocket";
+import { Button } from "@/components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
+import PollCard from "@/components/PollCard";
 
 export default function AllPolls() {
   const { polls } = useAppSelector((state) => state.polls);
@@ -18,28 +32,28 @@ export default function AllPolls() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<'all' | 'active' | 'closed'>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "closed">("all");
   const { joinPollRoom, leavePollRoom } = useSockets();
 
   const fetchPolls = useCallback(async () => {
     try {
       setError(null);
       setLoading(true);
-      console.log('🔄 Fetching polls from API...');
-      
-      const response = await fetch('/api/polls');
-      
+      console.log("🔄 Fetching polls from API...");
+
+      const response = await fetch("/api/polls");
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const pollsData = await response.json();
-      console.log('Polls fetched successfully:', pollsData.length, 'polls');
+      console.log("Polls fetched successfully:", pollsData.length, "polls");
       dispatch(setPolls(pollsData));
     } catch (error) {
-      console.error('Failed to fetch polls:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load polls');
+      console.error("Failed to fetch polls:", error);
+      setError(error instanceof Error ? error.message : "Failed to load polls");
     } finally {
       setLoading(false);
     }
@@ -50,39 +64,42 @@ export default function AllPolls() {
   }, [fetchPolls]);
 
   useEffect(() => {
-    polls.forEach(poll => {
+    polls.forEach((poll) => {
       joinPollRoom(poll.id);
     });
 
     return () => {
-      polls.forEach(poll => {
+      polls.forEach((poll) => {
         leavePollRoom(poll.id);
       });
     };
   }, [polls, joinPollRoom, leavePollRoom]);
-  const userPolls = user ? polls.filter(poll => poll.id === user.id) : polls;
-  
-  const filteredPolls = userPolls.filter(poll => {
-    const matchesSearch = poll.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         poll.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filter === 'all' || 
-                         (filter === 'active' && poll.isActive) ||
-                         (filter === 'closed' && !poll.isActive);
-    
+  const userPolls = user ? polls.filter((poll) => poll.id === user.id) : polls;
+
+  const filteredPolls = userPolls.filter((poll) => {
+    const matchesSearch =
+      poll.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      poll.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "active" && poll.isActive) ||
+      (filter === "closed" && !poll.isActive);
+
     return matchesSearch && matchesFilter;
   });
 
   const stats = {
     total: userPolls.length,
-    active: userPolls.filter(poll => poll.isActive).length,
-    closed: userPolls.filter(poll => !poll.isActive).length,
+    active: userPolls.filter((poll) => poll.isActive).length,
+    closed: userPolls.filter((poll) => !poll.isActive).length,
     totalVotes: userPolls.reduce((sum, poll) => sum + poll.totalVotes, 0),
     userParticipation: user ? userPolls.length : 0,
   };
 
   // Calculate average votes per poll
-  const avgVotesPerPoll = stats.total > 0 ? Math.round(stats.totalVotes / stats.total) : 0;
+  const avgVotesPerPoll =
+    stats.total > 0 ? Math.round(stats.totalVotes / stats.total) : 0;
 
   if (loading) {
     return (
@@ -98,16 +115,18 @@ export default function AllPolls() {
       <div className="space-y-6 bg-gray-200 dark:bg-gray-800">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Polls</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              My Polls
+            </h1>
             <CardDescription>
-              {user ? `Manage your ${stats.total} polls` : 'Browse all available polls'}
+              {user
+                ? `Manage your ${stats.total} polls`
+                : "Browse all available polls"}
             </CardDescription>
           </div>
           {user && (
             <Link href="/polls/create" className="mt-4 sm:mt-0">
-              <Button icon={Plus}>
-                New Poll
-              </Button>
+              <Button icon={Plus}>New Poll</Button>
             </Link>
           )}
         </div>
@@ -138,20 +157,17 @@ export default function AllPolls() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {user ? 'My Polls' : 'All Polls'}
+            {user ? "My Polls" : "All Polls"}
           </h1>
           <CardDescription>
-            {user 
-              ? `Manage and view all your ${stats.total} created polls` 
-              : `Browse ${stats.total} available polls`
-            }
+            {user
+              ? `Manage and view all your ${stats.total} created polls`
+              : `Browse ${stats.total} available polls`}
           </CardDescription>
         </div>
         {user && (
           <Link href="/polls/create" className="mt-4 sm:mt-0">
-            <Button icon={Plus}>
-              New Poll
-            </Button>
+            <Button icon={Plus}>New Poll</Button>
           </Link>
         )}
       </div>
@@ -163,7 +179,9 @@ export default function AllPolls() {
             <BarChart3 className="h-6 w-6 text-indigo-600" />
             <div>
               <p className="text-2xl font-bold text-gray-900 ">{stats.total}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Polls</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Total Polls
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -171,7 +189,9 @@ export default function AllPolls() {
           <CardContent className="p-4 flex items-center gap-3">
             <Users className="h-6 w-6 text-green-600" />
             <div>
-              <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {stats.active}
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
             </div>
           </CardContent>
@@ -180,7 +200,9 @@ export default function AllPolls() {
           <CardContent className="p-4 flex items-center gap-3">
             <Clock className="h-6 w-6 text-orange-600" />
             <div>
-              <p className="text-2xl font-bold text-orange-600">{stats.closed}</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {stats.closed}
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">Closed</p>
             </div>
           </CardContent>
@@ -194,8 +216,12 @@ export default function AllPolls() {
               </Badge>
             </div>
             <div>
-              <p className="text-2xl font-bold text-purple-600">{stats.totalVotes}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Votes</p>
+              <p className="text-2xl font-bold text-purple-600">
+                {stats.totalVotes}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Total Votes
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -221,24 +247,24 @@ export default function AllPolls() {
             </div>
             <div className="flex space-x-2">
               <Button
-                variant={filter === 'all' ? 'primary' : 'secondary'}
-                onClick={() => setFilter('all')}
+                variant={filter === "all" ? "primary" : "secondary"}
+                onClick={() => setFilter("all")}
                 size="sm"
                 icon={BarChart3}
               >
                 All
               </Button>
               <Button
-                variant={filter === 'active' ? 'primary' : 'secondary'}
-                onClick={() => setFilter('active')}
+                variant={filter === "active" ? "primary" : "secondary"}
+                onClick={() => setFilter("active")}
                 size="sm"
                 icon={Users}
               >
                 Active
               </Button>
               <Button
-                variant={filter === 'closed' ? 'primary' : 'secondary'}
-                onClick={() => setFilter('closed')}
+                variant={filter === "closed" ? "primary" : "secondary"}
+                onClick={() => setFilter("closed")}
                 size="sm"
                 icon={Clock}
               >
@@ -246,7 +272,7 @@ export default function AllPolls() {
               </Button>
             </div>
           </div>
-          {(searchTerm || filter !== 'all') && (
+          {(searchTerm || filter !== "all") && (
             <div className="mt-3 flex items-center justify-between">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {filteredPolls.length} of {userPolls.length} polls
@@ -254,8 +280,8 @@ export default function AllPolls() {
               </p>
               <Button
                 onClick={() => {
-                  setSearchTerm('');
-                  setFilter('all');
+                  setSearchTerm("");
+                  setFilter("all");
                 }}
                 variant="ghost"
                 size="sm"
@@ -273,21 +299,22 @@ export default function AllPolls() {
           <CardContent className="p-12 text-center">
             <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-sm font-medium text-gray-900 dark:text-white">
-              {searchTerm || filter !== 'all' ? 'No matching polls' : 'No polls yet'}
+              {searchTerm || filter !== "all"
+                ? "No matching polls"
+                : "No polls yet"}
             </h3>
             <CardDescription className="mt-2 max-w-sm mx-auto">
-              {searchTerm || filter !== 'all' 
-                ? 'Try adjusting your search or filter to find what you\'re looking for.'
+              {searchTerm || filter !== "all"
+                ? "Try adjusting your search or filter to find what you're looking for."
                 : user
-                  ? 'Get started by creating your first poll to gather insights from your audience.'
-                  : 'There are no polls available at the moment.'
-              }
+                ? "Get started by creating your first poll to gather insights from your audience."
+                : "There are no polls available at the moment."}
             </CardDescription>
-            {(searchTerm || filter !== 'all') ? (
+            {searchTerm || filter !== "all" ? (
               <Button
                 onClick={() => {
-                  setSearchTerm('');
-                  setFilter('all');
+                  setSearchTerm("");
+                  setFilter("all");
                 }}
                 variant="outline"
                 className="mt-4"
@@ -298,9 +325,7 @@ export default function AllPolls() {
             ) : (
               user && (
                 <Link href="/polls/create" className="mt-6 inline-block">
-                  <Button icon={Plus}>
-                    Create Your First Poll
-                  </Button>
+                  <Button icon={Plus}>Create Your First Poll</Button>
                 </Link>
               )
             )}
@@ -310,7 +335,8 @@ export default function AllPolls() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredPolls.length} poll{filteredPolls.length !== 1 ? 's' : ''}
+              Showing {filteredPolls.length} poll
+              {filteredPolls.length !== 1 ? "s" : ""}
             </p>
             <Button
               onClick={fetchPolls}

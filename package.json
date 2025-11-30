@@ -27,6 +27,7 @@
     "mongodb": "^7.0.0",
     "next": "16.0.3",
     "next-auth": "^4.24.13",
+    "next-pwa": "^5.6.0",
     "prisma": "^5.10.2",
     "react": "19.2.0",
     "react-chartjs-2": "^5.3.1",

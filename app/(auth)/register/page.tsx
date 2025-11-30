@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { registerSchema ,RegisterInput } from "@/lib/schemas/auth";
+import { registerSchema, RegisterInput } from "@/lib/schemas/auth";
 import { Mail, User, Lock, Eye, EyeOff, Github, Chrome } from "lucide-react";
 import { signIn } from "next-auth/react";
 
@@ -17,7 +17,7 @@ export default function Register() {
     register,
     handleSubmit,
     formState: { errors },
-    setError
+    setError,
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
   });
@@ -42,7 +42,6 @@ export default function Register() {
 
       router.push("/login");
       router.refresh();
-
     } catch (error) {
       setError("root", { message: "Registration failed" });
     }
@@ -51,13 +50,11 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-100 to-blue-200 flex items-center justify-center p-4">
       <div className="card p-10 max-w-[60%] w-full">
-
         <h1 className="text-3xl font-bold text-center mb-6">
           Create your account
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-8">
-
           {/* NAME */}
           <div>
             <label className="block text-sm font-medium mb-2">Full Name</label>
@@ -88,7 +85,9 @@ export default function Register() {
               />
             </div>
             {errors.email && (
-              <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
+              <p className="text-sm text-red-600 mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
@@ -112,13 +111,17 @@ export default function Register() {
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
+              <p className="text-sm text-red-600 mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
           {/* CONFIRM PASSWORD */}
           <div>
-            <label className="block text-sm font-medium mb-2">Confirm Password</label>
+            <label className="block text-sm font-medium mb-2">
+              Confirm Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input

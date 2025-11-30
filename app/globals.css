@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Background image example */
 .app-background {
   background-image: url('/images/bg-second.png');
   background-size: cover;

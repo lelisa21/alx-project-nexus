@@ -9,7 +9,8 @@ import {
   Share2,
   Copy,
   BarChart3,
-  Eye,Edit,
+  Eye,
+  Edit,
   CheckCircle,
   TrendingUp,
   MessageCircle,
@@ -74,7 +75,6 @@ export default function PollDetail() {
   useEffect(() => {
     const fetchPoll = async () => {
       try {
-        console.log("PollDetail: Fetching poll with ID:", pollId);
         setError("");
         setSuccess("");
 
@@ -82,8 +82,6 @@ export default function PollDetail() {
 
         if (response.ok) {
           const pollData = await response.json();
-          console.log(" PollDetail: Poll fetched successfully");
-
           const adaptedPoll = adaptPollData(pollData, pollId);
           dispatch(setCurrentPoll(adaptedPoll));
           setSuccess("Poll loaded successfully!");
@@ -384,11 +382,11 @@ export default function PollDetail() {
               Share
             </Button>
             {/* {user && currentPoll?.createdBy === user.id && ( */}
-              <Link href={`/polls/edit/${pollId}`}>
-                <Button variant="outline" icon={Edit}>
-                  Edit Poll
-                </Button>
-              </Link>
+            <Link href={`/polls/edit/${pollId}`}>
+              <Button variant="outline" icon={Edit}>
+                Edit Poll
+              </Button>
+            </Link>
             {/* )} */}
           </div>
         </div>

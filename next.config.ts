@@ -1,7 +1,18 @@
-import type { NextConfig } from "next";
+import withPWA from 'next-pwa';
+import runtimeCaching from './app/pwa-runtime-caching';
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const isProd = process.env.NODE_ENV === 'production';
+
+const nextConfig = {
+  reactStrictMode: true,
+  // empty turbopack config to avoid build error
+  turbopack: {},
 };
 
-export default nextConfig;
+export default withPWA({
+  dest: 'public',
+  disable: !isProd,   // disables PWA in dev
+  register: true,
+  skipWaiting: true,
+  runtimeCaching,
+})(nextConfig);

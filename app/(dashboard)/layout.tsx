@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { logout } from '@/features/auth/authSlice';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { 
-  BarChart3, 
-  Plus, 
-  User, 
-  LogOut, 
-  Menu, 
-  X, 
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { logout } from "@/features/auth/authSlice";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  BarChart3,
+  Plus,
+  User,
+  LogOut,
+  Menu,
+  X,
   Home,
   Settings,
-  PieChart
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+  PieChart,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 export default function DashboardLayout({
   children,
@@ -38,38 +38,38 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout');
+      await fetch("/api/auth/logout");
       dispatch(logout());
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   const navigation = [
-    { 
-      name: 'Dashboard', 
-      href: '/dashboard', 
+    {
+      name: "Dashboard",
+      href: "/dashboard",
       icon: Home,
-      current: pathname === '/dashboard'
+      current: pathname === "/dashboard",
     },
-    { 
-      name: 'Create Poll', 
-      href: '/polls/create', 
+    {
+      name: "Create Poll",
+      href: "/polls/create",
       icon: Plus,
-      current: pathname === '/polls/create'
+      current: pathname === "/polls/create",
     },
-    { 
-      name: 'My Polls', 
-      href: '/polls', 
+    {
+      name: "My Polls",
+      href: "/polls",
       icon: PieChart,
-      current: pathname === '/polls'
+      current: pathname === "/polls",
     },
-    { 
-      name: 'Profile', 
-      href: '/profile', 
+    {
+      name: "Profile",
+      href: "/profile",
       icon: User,
-      current: pathname === '/profile'
+      current: pathname === "/profile",
     },
   ];
 
@@ -86,21 +86,29 @@ export default function DashboardLayout({
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 flex z-40 md:hidden bg-gray-600 bg-opacity-75 transition-opacity"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Mobile sidebar */}
-        <div className={`fixed inset-0 flex z-40 md:hidden transition-transform duration-300 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
+        <div
+          className={`fixed inset-0 flex z-40 md:hidden transition-transform duration-300 ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-green-200/80">
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               {/* Close button */}
               <div className="flex items-center justify-between px-4">
-                <Image src="/logo.png" alt="logo" width={150} height={60} priority />
+                <Image
+                  src="/logo.png"
+                  alt="logo"
+                  width={150}
+                  height={60}
+                  priority
+                />
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
@@ -117,14 +125,18 @@ export default function DashboardLayout({
                     href={item.href}
                     className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-colors ${
                       item.current
-                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                     onClick={() => setSidebarOpen(false)}
                   >
-                    <item.icon className={`mr-3 h-5 w-5 ${
-                      item.current ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
-                    }`} />
+                    <item.icon
+                      className={`mr-3 h-5 w-5 ${
+                        item.current
+                          ? "text-indigo-500"
+                          : "text-gray-400 group-hover:text-gray-500"
+                      }`}
+                    />
                     {item.name}
                   </Link>
                 ))}
@@ -136,12 +148,16 @@ export default function DashboardLayout({
               <div className="flex items-center w-full">
                 <div className="shrink-0">
                   <div className="w-10 h-10 bg-linear-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                    {user?.name?.charAt(0).toUpperCase() || "U"}
                   </div>
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-                  <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.name}
+                  </p>
+                  <p className="text-sm text-gray-500 truncate">
+                    {user?.email}
+                  </p>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -162,7 +178,13 @@ export default function DashboardLayout({
               {/* Logo */}
               <div className="flex items-center justify-between px-6 mb-8">
                 <Link href="/dashboard" className="flex items-center space-x-2">
-                 <Image src="/logo.png" alt="logo" width={150} height={60} priority />
+                  <Image
+                    src="/logo.png"
+                    alt="logo"
+                    width={150}
+                    height={60}
+                    priority
+                  />
                 </Link>
               </div>
 
@@ -174,13 +196,17 @@ export default function DashboardLayout({
                     href={item.href}
                     className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                       item.current
-                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm'
-                        : 'text-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
+                        ? "bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm"
+                        : "text-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm"
                     }`}
                   >
-                    <item.icon className={`mr-3 h-5 w-5 transition-colors ${
-                      item.current ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'
-                    }`} />
+                    <item.icon
+                      className={`mr-3 h-5 w-5 transition-colors ${
+                        item.current
+                          ? "text-indigo-500"
+                          : "text-gray-400 group-hover:text-gray-500"
+                      }`}
+                    />
                     {item.name}
                   </Link>
                 ))}
@@ -192,12 +218,16 @@ export default function DashboardLayout({
               <div className="flex items-center p-4">
                 <div className="shrink-0">
                   <div className="w-10 h-10 bg-linear-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                    {user?.name?.charAt(0).toUpperCase() || "U"}
                   </div>
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {user?.email}
+                  </p>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -224,7 +254,13 @@ export default function DashboardLayout({
                 <Menu className="h-6 w-6" />
               </button>
               <Link href="/dashboard" className="flex items-center space-x-2">
-                <Image src="/logo.png" alt="logo" width={150} height={60} priority />
+                <Image
+                  src="/logo.png"
+                  alt="logo"
+                  width={150}
+                  height={60}
+                  priority
+                />
               </Link>
               <div className="w-19"></div>
             </div>

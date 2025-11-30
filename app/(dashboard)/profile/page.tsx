@@ -183,13 +183,11 @@ export default function Profile() {
       });
     } else {
       navigator.clipboard.writeText(profileUrl);
-      // You could add a toast notification here
       alert("Profile link copied to clipboard!");
     }
   };
 
   const generateQRCode = () => {
-    // In a real app, this would generate a QR code for the latest poll
     const latestPoll = polls[0];
     if (latestPoll) {
       const pollUrl = `${window.location.origin}/poll/${latestPoll.id}`;

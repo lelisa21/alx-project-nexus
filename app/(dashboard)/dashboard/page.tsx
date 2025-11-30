@@ -1,17 +1,25 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { setPolls } from '@/features/polls/pollsSlice';
-import { Plus, Users, BarChart3, Clock, TrendingUp, ArrowRight, PieChart } from 'lucide-react';
-import { useSockets } from '@/hooks/useSocket';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import PollCard from '@/components/PollCard';
-import ResultChart from '@/components/ResultChart'; 
-import ChartComponent from '@/components/ChartComponent'; 
-import { Badge } from '@/components/ui/Badge';
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { setPolls } from "@/features/polls/pollsSlice";
+import {
+  Plus,
+  Users,
+  BarChart3,
+  Clock,
+  TrendingUp,
+  ArrowRight,
+  PieChart,
+} from "lucide-react";
+import { useSockets } from "@/hooks/useSocket";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import PollCard from "@/components/PollCard";
+import ResultChart from "@/components/ResultChart";
+import ChartComponent from "@/components/ChartComponent";
+import { Badge } from "@/components/ui/Badge";
 
 export default function Dashboard() {
   const { polls } = useAppSelector((state) => state.polls);
@@ -22,15 +30,15 @@ export default function Dashboard() {
 
   const fetchPolls = useCallback(async () => {
     try {
-      const response = await fetch('/api/polls');
+      const response = await fetch("/api/polls");
       if (response.ok) {
         const pollsData = await response.json();
         dispatch(setPolls(pollsData));
       } else {
-        console.error('Failed to fetch polls:', response.status);
+        console.error("Failed to fetch polls:", response.status);
       }
     } catch (error) {
-      console.error('Failed to fetch polls:', error);
+      console.error("Failed to fetch polls:", error);
     } finally {
       setLoading(false);
     }
@@ -41,12 +49,12 @@ export default function Dashboard() {
   }, [fetchPolls]);
 
   useEffect(() => {
-    polls.forEach(poll => {
+    polls.forEach((poll) => {
       joinPollRoom(poll.id);
     });
 
     return () => {
-      polls.forEach(poll => {
+      polls.forEach((poll) => {
         leavePollRoom(poll.id);
       });
     };
@@ -56,12 +64,17 @@ export default function Dashboard() {
   const stats = {
     totalPolls: polls.length,
     totalVotes: polls.reduce((sum, poll) => sum + poll.totalVotes, 0),
-    activePolls: polls.filter(poll => poll.isActive).length,
-    averageVotes: polls.length > 0 ? Math.round(polls.reduce((sum, poll) => sum + poll.totalVotes, 0) / polls.length) : 0,
+    activePolls: polls.filter((poll) => poll.isActive).length,
+    averageVotes:
+      polls.length > 0
+        ? Math.round(
+            polls.reduce((sum, poll) => sum + poll.totalVotes, 0) / polls.length
+          )
+        : 0,
   };
 
   // Get polls with votes for display
-  const pollsWithVotes = polls.filter(poll => poll.totalVotes > 0);
+  const pollsWithVotes = polls.filter((poll) => poll.totalVotes > 0);
   const topPolls = pollsWithVotes
     .sort((a, b) => b.totalVotes - a.totalVotes)
     .slice(0, 3);
@@ -70,13 +83,13 @@ export default function Dashboard() {
 
   // Chart data for overview charts
   const votesOverTimeData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
     datasets: [
       {
-        label: 'Votes',
+        label: "Votes",
         data: [65, 59, 80, 81, 56, 55],
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: "rgba(54, 162, 235, 0.2)",
+        borderColor: "rgba(54, 162, 235, 1)",
         borderWidth: 2,
         tension: 0.4,
       },
@@ -84,18 +97,12 @@ export default function Dashboard() {
   };
 
   const pollStatusData = {
-    labels: ['Active', 'Completed'],
+    labels: ["Active", "Completed"],
     datasets: [
       {
         data: [stats.activePolls, stats.totalPolls - stats.activePolls],
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(255, 99, 132, 0.8)',
-        ],
-        borderColor: [
-          'rgba(75, 192, 192, 1)',
-          'rgba(255, 99, 132, 1)',
-        ],
+        backgroundColor: ["rgba(75, 192, 192, 0.8)", "rgba(255, 99, 132, 0.8)"],
+        borderColor: ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)"],
         borderWidth: 2,
       },
     ],
@@ -114,16 +121,15 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, {user?.name}!</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Here&apos;s what&apos;s happening with your polls.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome back, {user?.name}!
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Here&apos;s what&apos;s happening with your polls.
+          </p>
         </div>
-        <Link
-          href="/polls/create"
-          className="mt-4 sm:mt-0"
-        >
-          <Button icon={Plus}>
-            New Poll
-          </Button>
+        <Link href="/polls/create" className="mt-4 sm:mt-0">
+          <Button icon={Plus}>New Poll</Button>
         </Link>
       </div>
 
@@ -139,7 +145,9 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Polls</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalPolls}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalPolls}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -155,7 +163,9 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Votes</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalVotes}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalVotes}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -170,8 +180,12 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Polls</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activePolls}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Active Polls
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.activePolls}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -187,7 +201,9 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Avg. Votes</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.averageVotes}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.averageVotes}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -212,7 +228,7 @@ export default function Dashboard() {
                 options={{
                   plugins: {
                     legend: {
-                      position: 'bottom',
+                      position: "bottom",
                     },
                   },
                 }}
@@ -280,7 +296,9 @@ export default function Dashboard() {
       {/* Recent Polls */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Polls</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Recent Polls
+          </h2>
           <Link
             href="/dashboard/polls"
             className="text-sm text-indigo-600 hover:text-indigo-500 font-medium flex items-center dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -294,17 +312,15 @@ export default function Dashboard() {
           <Card>
             <CardContent className="p-12 text-center">
               <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-sm font-medium text-gray-900 dark:text-white">No polls yet</h3>
+              <h3 className="mt-4 text-sm font-medium text-gray-900 dark:text-white">
+                No polls yet
+              </h3>
               <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
-                Get started by creating your first poll to gather insights from your audience.
+                Get started by creating your first poll to gather insights from
+                your audience.
               </p>
-              <Link
-                href="/polls/create"
-                className="mt-6 inline-block"
-              >
-                <Button icon={Plus}>
-                  Create Your First Poll
-                </Button>
+              <Link href="/polls/create" className="mt-6 inline-block">
+                <Button icon={Plus}>Create Your First Poll</Button>
               </Link>
             </CardContent>
           </Card>
@@ -328,8 +344,12 @@ export default function Dashboard() {
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6 text-center">
                   <Plus className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                  <p className="font-medium text-gray-900 dark:text-white">Create Poll</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Start a new poll</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    Create Poll
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Start a new poll
+                  </p>
                 </CardContent>
               </Card>
             </Link>
@@ -337,8 +357,12 @@ export default function Dashboard() {
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6 text-center">
                   <BarChart3 className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <p className="font-medium text-gray-900 dark:text-white">View All Polls</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Manage your polls</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    View All Polls
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Manage your polls
+                  </p>
                 </CardContent>
               </Card>
             </Link>
@@ -346,8 +370,12 @@ export default function Dashboard() {
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6 text-center">
                   <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <p className="font-medium text-gray-900 dark:text-white">Profile</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">View your stats</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    Profile
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    View your stats
+                  </p>
                 </CardContent>
               </Card>
             </Link>

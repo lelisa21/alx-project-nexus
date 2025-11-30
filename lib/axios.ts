@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: "/api",
   timeout: 10000,
 });
 
@@ -18,10 +18,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      window.location.href = '/login';
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
 );
-
-

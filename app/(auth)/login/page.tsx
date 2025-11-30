@@ -27,10 +27,6 @@ export default function SignUp() {
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
-
-  // -------------------------------
-  // Email/Password Login Handler
-  // -------------------------------
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
     try {
@@ -64,10 +60,7 @@ export default function SignUp() {
       setLoading(false);
     }
   };
-
-  // -------------------------------
   // OAuth Handler
-  // -------------------------------
   const handleOAuth = (provider: "google" | "github") => {
     signIn(provider, { callbackUrl: "/dashboard" });
   };
@@ -101,7 +94,10 @@ export default function SignUp() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 flex justify-between items-center flex-col xl:flex-row ">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-8 flex justify-between items-center flex-col xl:flex-row "
+          >
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
