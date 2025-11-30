@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@prisma/sch"; // your prisma client
+import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
@@ -44,8 +44,6 @@ export async function POST(req: Request) {
 
     console.log("User created:", newUser);
 
-    // *Optional* => Send email verification
-    // await sendVerificationEmail(newUser.email, token);
 
     return NextResponse.json(
       { message: "User registered successfully. Please log in." },

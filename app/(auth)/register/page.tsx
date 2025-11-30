@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { registerSchema, type RegisterInput } from "@/lib/schemas/auth";
+import { registerSchema ,RegisterInput } from "@/lib/schemas/auth";
 import { Mail, User, Lock, Eye, EyeOff, Github, Chrome } from "lucide-react";
 import { signIn } from "next-auth/react";
 
@@ -56,7 +56,7 @@ export default function Register() {
           Create your account
         </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-8">
 
           {/* NAME */}
           <div>
@@ -84,7 +84,7 @@ export default function Register() {
                 {...register("email")}
                 type="email"
                 className="input-primary pl-10"
-                placeholder="example@mail.com"
+                placeholder="example@gmail.com"
               />
             </div>
             {errors.email && (
@@ -154,7 +154,7 @@ export default function Register() {
               <div className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
+              <span className="px-2 bg-white text-gray-500 dark:bg-gray-800 dark:text-white">
                 Or continue with
               </span>
             </div>

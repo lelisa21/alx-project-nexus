@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAppDispatch } from '@/store/hooks';
-import { setUser } from '@/features/auth/authSlice';
-import { Eye, EyeOff, Mail, Lock, Github, Chrome } from 'lucide-react';
-import { loginSchema, type LoginInput } from '@/lib/schemas/auth';
-import { signIn } from 'next-auth/react';
-import GoHome from '@/components/ui/GoHome';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAppDispatch } from "@/store/hooks";
+import { setUser } from "@/features/auth/authSlice";
+import { Eye, EyeOff, Mail, Lock, Github, Chrome } from "lucide-react";
+import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
+import { signIn } from "next-auth/react";
+import GoHome from "@/components/ui/GoHome";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,9 +34,9 @@ export default function SignUp() {
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
@@ -52,14 +52,14 @@ export default function SignUp() {
         // Save user in Redux
         dispatch(setUser(user));
 
-        router.push('/dashboard');
+        router.push("/dashboard");
         router.refresh();
       } else {
         const error = await response.json();
-        setError('root', { message: error.message || 'Login failed' });
+        setError("root", { message: error.message || "Login failed" });
       }
     } catch (error) {
-      setError('root', { message: 'An error occurred during login' });
+      setError("root", { message: "An error occurred during login" });
     } finally {
       setLoading(false);
     }
@@ -68,13 +68,13 @@ export default function SignUp() {
   // -------------------------------
   // OAuth Handler
   // -------------------------------
-  const handleOAuth = (provider: 'google' | 'github') => {
-    signIn(provider, { callbackUrl: '/dashboard' });
+  const handleOAuth = (provider: "google" | "github") => {
+    signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 w-full">
-      <div className="max-w-md w-full">
+      <div className="max-w-[60%] w-full">
         {/* Back to Home */}
         <GoHome />
 
@@ -95,12 +95,13 @@ export default function SignUp() {
           {emailSent && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center">
               <p className="text-blue-600">
-                A confirmation email has been sent. Please check your inbox to verify your email.
+                A confirmation email has been sent. Please check your inbox to
+                verify your email.
               </p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 flex justify-between items-center flex-col xl:flex-row ">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
@@ -109,7 +110,7 @@ export default function SignUp() {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  {...register('email')}
+                  {...register("email")}
                   type="email"
                   placeholder="Enter your email"
                   className="input-primary pl-10"
@@ -117,7 +118,9 @@ export default function SignUp() {
                 />
               </div>
               {errors.email && (
-                <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-2 text-sm text-red-600">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -129,8 +132,8 @@ export default function SignUp() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  {...register('password')}
-                  type={showPassword ? 'text' : 'password'}
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   className="input-primary pl-10 pr-10"
                   disabled={emailSent}
@@ -140,18 +143,26 @@ export default function SignUp() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-2 text-sm text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
             {/* Form error */}
             {errors.root && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-600 text-center">{errors.root.message}</p>
+                <p className="text-sm text-red-600 text-center">
+                  {errors.root.message}
+                </p>
               </div>
             )}
 
@@ -159,7 +170,7 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={loading || emailSent}
-              className="w-full btn-primary py-3 text-base"
+              className="btn-primary py-3 px-8 text-base"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -167,7 +178,7 @@ export default function SignUp() {
                   Signing in...
                 </div>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>
@@ -185,16 +196,16 @@ export default function SignUp() {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-8 grid grid-cols-2 gap-6 lg:gap-10">
               <button
-                onClick={() => handleOAuth('google')}
+                onClick={() => handleOAuth("google")}
                 className="w-full btn-secondary py-3 flex items-center justify-center"
               >
                 <Chrome className="h-5 w-5 mr-2" />
                 Google
               </button>
               <button
-                onClick={() => handleOAuth('github')}
+                onClick={() => handleOAuth("github")}
                 className="w-full btn-secondary py-3 flex items-center justify-center"
               >
                 <Github className="h-5 w-5 mr-2" />
@@ -204,8 +215,8 @@ export default function SignUp() {
           </div>
 
           {/* Signup link */}
-          <p className="mt-8 text-center text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
+          <p className="mt-8 text-center text-sm text-gray-700 dark:text-white">
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="hover:text-teal-400 text-teal-600 font-medium transition-colors duration-300"
