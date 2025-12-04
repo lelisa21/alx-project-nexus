@@ -8,7 +8,7 @@ export function SocketStatus() {
   if (connectionError) {
     return (
       <div className="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded-lg shadow-lg">
-        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+        <div className="w-3 h-3 bg-red-500 rounded-full" title = "offline- connect socket.io"></div>
       </div>
     );
   }
