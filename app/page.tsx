@@ -57,14 +57,14 @@ export default function Home() {
                   </Link>
                 </>
               ) : (
-                <>
+                <div className='hidden md:block'>
                   <Link href="/login" className="text-white hover:text-white/65 font-medium transition-colors">
                     Sign In
                   </Link>
                   <Link href="/register" className="btn-primary">
                     Get Started Free
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>

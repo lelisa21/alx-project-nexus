@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.className}>
       <head>
         {/* Canonical URL */}
-        <link rel="canonical" href="https://online-polling-system.vercel.app/" />
+        <link rel="canonical" href="https://pollify-online-polling-system.vercel.app/" />
 
         {/* Favicons / Apple touch icons */}
         <link rel="icon" href="/favicon.ico" />

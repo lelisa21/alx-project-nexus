@@ -91,7 +91,6 @@ export default function DashboardLayout({
             onClick={() => setSidebarOpen(false)}
           />
         )}
-
         {/* Mobile sidebar */}
         <div
           className={`fixed inset-0 flex z-40 md:hidden transition-transform duration-300 ${
@@ -253,7 +252,7 @@ export default function DashboardLayout({
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <Link href="/dashboard" className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2">
                 <Image
                   src="/logo.png"
                   alt="logo"
