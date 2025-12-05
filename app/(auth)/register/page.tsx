@@ -49,7 +49,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-100 to-blue-200 flex items-center justify-center p-4">
-      <div className="card p-10 max-w-[60%] w-full">
+      <div className="card p-10 w-full lg:max-w-[60%]">
         <h1 className="text-3xl font-bold text-center mb-6">
           Create your account
         </h1>

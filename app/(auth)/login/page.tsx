@@ -67,7 +67,7 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 w-full">
-      <div className="max-w-[60%] w-full">
+      <div className="w-full lg:max-w-[60%]">
         {/* Back to Home */}
         <GoHome />
 
