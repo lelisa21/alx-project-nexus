@@ -12,10 +12,9 @@ import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { signIn } from "next-auth/react";
 import GoHome from "@/components/ui/GoHome";
 
-export default function SignUp() {
+export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
 
@@ -24,9 +23,15 @@ export default function SignUp() {
     handleSubmit,
     formState: { errors },
     setError,
+    reset,
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
+
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
     try {
@@ -36,33 +41,56 @@ export default function SignUp() {
         body: JSON.stringify(data),
       });
 
+      const responseData = await response.json();
+
       if (response.ok) {
-        const user = await response.json();
-
-        // Check if email is confirmed
-        if (!user.emailConfirmed) {
-          setEmailSent(true);
-          return;
-        }
-
         // Save user in Redux
-        dispatch(setUser(user));
-
-        router.push("/dashboard");
+        dispatch(setUser(responseData.user || responseData));
+        
+        // Redirect to dashboard or previous page
+        const redirectTo = localStorage.getItem("redirectAfterLogin") || "/dashboard";
+        localStorage.removeItem("redirectAfterLogin");
+        
+        router.push(redirectTo);
         router.refresh();
       } else {
-        const error = await response.json();
-        setError("root", { message: error.message || "Login failed" });
+        // FIX: Use responseData.error instead of responseData.message
+        setError("root", { 
+          message: responseData.error || "Login failed. Please check your credentials." 
+        });
       }
     } catch (error) {
-      setError("root", { message: "An error occurred during login" });
+      console.error("Login error:", error);
+      setError("root", { 
+        message: "Network error. Please check your connection." 
+      });
     } finally {
       setLoading(false);
     }
   };
+
   // OAuth Handler
   const handleOAuth = (provider: "google" | "github") => {
     signIn(provider, { callbackUrl: "/dashboard" });
+  };
+
+  // Demo login handler
+  const handleDemoLogin = () => {
+    reset({
+      email: "demo@example.com",
+      password: "demo123",
+    });
+    
+    // Auto-submit after a short delay
+    setTimeout(() => {
+      const form = document.querySelector("form");
+      if (form) {
+        const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (submitButton) {
+          submitButton.click();
+        }
+      }
+    }, 100);
   };
 
   return (
@@ -85,18 +113,30 @@ export default function SignUp() {
             </p>
           </div>
 
-          {emailSent && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center">
-              <p className="text-blue-600">
-                A confirmation email has been sent. Please check your inbox to
-                verify your email.
-              </p>
+          {/* Demo Account */}
+          <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-800 font-medium">
+                  Demo Account Available
+                </p>
+                <p className="text-xs text-gray-700 mt-1">
+                  Email: <span className="font-semibold">demo@example.com</span> 
+                  {" "} | Password: <span className="font-semibold">demo123</span>
+                </p>
+              </div>
+              <button
+                onClick={handleDemoLogin}
+                className="text-xs bg-emerald-700 hover:bg-emerald-900 text-white px-3 py-1.5 rounded-md transition"
+              >
+                Use Demo
+              </button>
             </div>
-          )}
+          </div>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="space-y-8 flex justify-between items-center flex-col xl:flex-row "
+            className="space-y-8 flex justify-between items-center flex-col xl:flex-row"
           >
             {/* Email */}
             <div>
@@ -109,8 +149,7 @@ export default function SignUp() {
                   {...register("email")}
                   type="email"
                   placeholder="Enter your email"
-                  className="input-primary pl-10"
-                  disabled={emailSent}
+                  className="input-primary pl-10 pr-10"
                 />
               </div>
               {errors.email && (
@@ -132,7 +171,6 @@ export default function SignUp() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   className="input-primary pl-10 pr-10"
-                  disabled={emailSent}
                 />
                 <button
                   type="button"
@@ -155,7 +193,7 @@ export default function SignUp() {
 
             {/* Form error */}
             {errors.root && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 col-span-full">
                 <p className="text-sm text-red-600 text-center">
                   {errors.root.message}
                 </p>
@@ -165,7 +203,7 @@ export default function SignUp() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading || emailSent}
+              disabled={loading}
               className="btn-primary py-3 px-8 text-base"
             >
               {loading ? (

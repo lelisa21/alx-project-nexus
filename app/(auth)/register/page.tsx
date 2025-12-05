@@ -12,6 +12,7 @@ import { signIn } from "next-auth/react";
 export default function Register() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -23,6 +24,8 @@ export default function Register() {
   });
 
   const onSubmit = async (data: RegisterInput) => {
+    setIsSubmitting(true);
+    
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -34,16 +37,24 @@ export default function Register() {
         }),
       });
 
+      const responseData = await res.json();
+
       if (!res.ok) {
-        const err = await res.json();
-        setError("root", { message: err.message });
+        setError("root", { 
+          message: responseData.error || "Registration failed. Please try again." 
+        });
+        setIsSubmitting(false);
         return;
       }
 
       router.push("/login");
       router.refresh();
     } catch (error) {
-      setError("root", { message: "Registration failed" });
+      console.error("Registration error:", error);
+      setError("root", { 
+        message: "Network error. Please check your connection and try again." 
+      });
+      setIsSubmitting(false);
     }
   };
 
@@ -145,8 +156,19 @@ export default function Register() {
             </div>
           )}
 
-          <button type="submit" className="btn-primary w-full py-3 text-lg">
-            Create Account
+          <button 
+            type="submit" 
+            className="btn-primary w-full py-3 text-lg"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                Creating Account...
+              </div>
+            ) : (
+              "Create Account"
+            )}
           </button>
         </form>
 
