@@ -1,11 +1,11 @@
-# 🗳️ Pollify - Real-time Polling Platform 
+#  Pollify - Real-time Polling Platform 
 <hr>
 
 A modern, real-time polling application built with Next.js 16, featuring live results, beautiful visualizations, and seamless user experience.
 
-## 🚀 Live Demo
+##  Live Demo
 
-[**Live Demo**](https://pollify-online-polling-system.vercel.app) | [**Design**]([https://docs.pollify.vercel.app](https://www.figma.com/design/fdcgMcCddi8pONvskEimRD/NEXUS-PROJECT?node-id=5-3&p=f&t=o4FTTFNwS0xWLVvA-0))
+[**Live Demo**](https://pollify-online-polling-system.vercel.app) | [**Design**](https://docs.pollify.vercel.app](https://www.figma.com/design/fdcgMcCddi8pONvskEimRD/NEXUS-PROJECT?node-id=5-3&p=f&t=o4FTTFNwS0xWLVvA-0))
 
 ##  Features
 
@@ -24,7 +24,7 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 - **Social Sharing** - Easy poll distribution
 - **Vote Analytics** - Detailed insights and statistics
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 ### Frontend
 | Technology | Purpose | Version |
@@ -61,7 +61,7 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 | **MongoDB Atlas** | Cloud Database |
 
 
-## 📦 Project Structure
+##  Project Structure
 
 ```
 pollify/
