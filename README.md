@@ -5,18 +5,18 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 
 ## 🚀 Live Demo
 
-[**Live Demo**](https://pollify.vercel.app) | [**Documentation**](https://docs.pollify.vercel.app)
+[**Live Demo**](https://pollify-online-polling-system.vercel.app) | [**Design**]([https://docs.pollify.vercel.app](https://www.figma.com/design/fdcgMcCddi8pONvskEimRD/NEXUS-PROJECT?node-id=5-3&p=f&t=o4FTTFNwS0xWLVvA-0))
 
-## ✨ Features
+##  Features
 
-### 🎯 Core Features
+###  Core Features
 - **Real-time Polling** - Live updates as votes come in
 - **Beautiful Charts** - Interactive data visualizations
 - **Anonymous & User Polls** - Create polls with or without accounts
 - **Advanced Settings** - Customize poll behavior and privacy
 - **Responsive Design** - Works perfectly on all devices
 
-### ⚡ Advanced Features
+###  Advanced Features
 - **Socket.io Integration** - Instant real-time updates
 - **Dark/Light Mode** - Full theme support
 - **Progress Tracking** - Visual creation progress
@@ -29,21 +29,20 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 ### Frontend
 | Technology | Purpose | Version |
 |------------|---------|---------|
-| **Next.js 14** | React Framework | 14.x |
-| **TypeScript** | Type Safety | 5.x |
-| **Tailwind CSS** | Styling | 3.x |
-| **React Hook Form** | Form Management | 7.x |
-| **Framer Motion** | Animations | 10.x |
-| **Lucide React** | Icons | 0.3.x |
+| **Next.js 14** | React Framework
+| **TypeScript** | Type Safety
+| **Tailwind CSS** | Styling 
+| **React Hook Form** | Form Management 
+| **Lucide React** | Icons 
 
 ### Backend
 | Technology | Purpose | Version |
 |------------|---------|---------|
-| **Next.js API Routes** | Serverless API | 14.x |
-| **Prisma** | Database ORM | 5.x |
-| **MongoDB** | Database | 6.x |
-| **Socket.io** | Real-time Communication | 4.x |
-| **NextAuth.js** | Authentication | 4.x |
+| **Next.js API Routes** | Serverless API
+| **Prisma** | Database ORM 
+| **MongoDB** | Database 
+| **Socket.io** | Real-time Communication
+| **NextAuth.js** | Authentication
 
 ### State Management & Utilities
 | Technology | Purpose |
@@ -54,13 +53,13 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 | **Date-fns** | Date Utilities |
 | **Chart.js** | Data Visualization |
 
-### Deployment & DevOps
+### Deployment
 | Technology | Purpose |
 |------------|---------|
 | **Vercel** | Hosting & Deployment |
 | **GitHub Actions** | CI/CD Pipeline |
 | **MongoDB Atlas** | Cloud Database |
-| **Redis** | Caching & Sessions |
+
 
 ## 📦 Project Structure
 
@@ -204,7 +203,7 @@ model Option {
 | `POST` | `/api/auth/register` | User registration |
 | `POST` | `/api/auth/login` | User login |
 
-## 🎨 UI Components
+##  UI Components
 
 ### Core Components
 - **Button** - Customizable button with variants
@@ -220,8 +219,7 @@ model Option {
 - **VoteButton** - Voting interface
 - **ProgressTracker** - Creation progress
 
-## 🔒 Authentication Flow
-
+##  Authentication Flow
 ```typescript
 // Protected API routes
 export const GET = withAuth(async (req) => {
@@ -238,7 +236,7 @@ export default function Page() {
 }
 ```
 
-## 📊 Real-time Features
+##  Real-time Features
 
 ### Socket.io Implementation
 ```typescript
@@ -256,7 +254,7 @@ io.on('connection', (socket) => {
 });
 ```
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 # Unit tests
@@ -272,7 +270,7 @@ npm run test:e2e
 npm run test:coverage
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Vercel Deployment
 1. Connect your GitHub repository to Vercel
@@ -286,7 +284,7 @@ NEXTAUTH_URL="https://yourdomain.vercel.app"
 NEXTAUTH_SECRET="production-secret"
 ```
 
-## 📈 Performance
+##  Performance
 
 ### Core Web Vitals
 - **LCP**: < 2.5s
@@ -299,7 +297,7 @@ NEXTAUTH_SECRET="production-secret"
 - **Bundle Analysis** - Webpack bundle analyzer
 - **CDN** - Vercel edge network
 
-## 🤝 Contributing
+##  Contributing
 
 We love contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -310,11 +308,11 @@ We love contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for 
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 **ALX and Their Community** - for preparing this amazing Learning Platform and Project
 - **Next.js Team** - Amazing React framework
@@ -329,7 +327,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Built with ❤️ using Next.js 14 and modern web technologies**
+**Built with ❤️ using Next.js 16 and modern web technologies**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
