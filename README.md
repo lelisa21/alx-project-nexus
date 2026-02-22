@@ -5,7 +5,7 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 
 ##  Live Demo
 
-[**Live Demo**](https://pollify-online-polling-system.vercel.app) | [**Design**]((https://www.figma.com/design/fdcgMcCddi8pONvskEimRD/NEXUS-PROJECT?node-id=5-4&p=f))
+[**Live Demo**](https://pollify-online-polling-system.vercel.app) | [**Design**](https://www.figma.com/design/fdcgMcCddi8pONvskEimRD/NEXUS-PROJECT?node-id=5-4&p=f)
 
 ##  Features
 
