@@ -3,8 +3,6 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { SocketStatus } from '@/components/SocketStatus';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { ThemeProvider } from '@/components/ThemeProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -89,14 +87,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
 
-      <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <ThemeProvider>
-          <Providers>
-            <ThemeToggle />
-            {children}
-            <SocketStatus />
-          </Providers>
-        </ThemeProvider>
+      <body className="min-h-screen bg-[#f7f8f3] text-slate-950">
+        <Providers>
+          {children}
+          <SocketStatus />
+        </Providers>
       </body>
     </html>
   );

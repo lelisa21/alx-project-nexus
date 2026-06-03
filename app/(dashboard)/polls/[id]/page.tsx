@@ -1,610 +1,353 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { setCurrentPoll, updatePoll } from "@/features/polls/pollsSlice";
+import { Poll } from "@/interface";
+import { audienceSegments, deviceSegments, engagementTimeline, recentActivity } from "@/lib/productDemo";
+import { calculatePercentage } from "@/lib/utils";
+import { useSockets } from "@/hooks/useSocket";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   ArrowLeft,
-  Users,
-  Clock,
-  Share2,
-  Copy,
   BarChart3,
+  CheckCircle2,
+  Copy,
+  Download,
   Eye,
-  Edit,
-  CheckCircle,
+  Globe2,
+  MessageSquareText,
+  Radio,
+  RefreshCw,
+  Share2,
+  Sparkles,
   TrendingUp,
-  MessageCircle,
+  Users,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { setCurrentPoll, updatePoll } from "@/features/polls/pollsSlice";
-import { useSockets } from "@/hooks/useSocket";
-import { Button } from "@/components/ui/Button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { PollChart } from "@/components/polls/PollChart";
-import { calculatePercentage } from "@/lib/utils";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import type { Poll } from "@/interface";
-const adaptPollData = (pollData: any, pollId: string): Poll => {
-  return {
-    id: pollData.id || pollId,
-    question: pollData.question || "Untitled Poll",
-    description: pollData.description || "",
-    options:
-      pollData.options?.map((opt: any, index: number) => ({
-        id: opt.id || `opt-${index}`,
-        text: opt.text || `Option ${index + 1}`,
-        votes: typeof opt.votes === "number" ? opt.votes : 0,
-        voted: opt.voted || false,
-      })) || [],
-    totalVotes:
-      typeof pollData.totalVotes === "number" ? pollData.totalVotes : 0,
-    isActive: pollData.isActive !== false,
-    createdAt: pollData.createdAt || new Date().toISOString(),
-    updatedAt: pollData.updatedAt || new Date().toISOString(),
-    createdBy: pollData.createdBy || pollData.userId || "unknown-user",
-    createdByUser: pollData.createdByUser || pollData.user || null,
-    hasVoted: pollData.hasVoted || false,
-    views: pollData.views || 0,
+interface PollApiOption {
+  id?: string;
+  text?: string;
+  votes?: number;
+  voted?: boolean;
+}
+
+interface PollApiResponse {
+  id?: string;
+  question?: string;
+  description?: string;
+  options?: PollApiOption[];
+  totalVotes?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  hasVoted?: boolean;
+  views?: number;
+  user?: {
+    name?: string;
   };
-};
+}
+
+const adaptPollData = (pollData: PollApiResponse, pollId: string): Poll => ({
+  id: pollData.id || pollId,
+  question: pollData.question || "Untitled Poll",
+  description: pollData.description || "",
+  options: pollData.options?.map((opt, index) => ({
+    id: opt.id || `opt-${index}`,
+    text: opt.text || `Option ${index + 1}`,
+    votes: typeof opt.votes === "number" ? opt.votes : 0,
+    voted: opt.voted || false,
+  })) || [],
+  totalVotes: typeof pollData.totalVotes === "number" ? pollData.totalVotes : 0,
+  isActive: pollData.isActive !== false,
+  createdAt: pollData.createdAt || new Date().toISOString(),
+  updatedAt: pollData.updatedAt || new Date().toISOString(),
+  createdBy: pollData.user?.name || pollData.createdBy || "Pollify workspace",
+  hasVoted: pollData.hasVoted || false,
+  views: pollData.views || 0,
+});
 
 export default function PollDetail() {
   const params = useParams();
-  const router = useRouter();
   const pollId = params.id as string;
-
-  const { currentPoll, loading } = useAppSelector((state) => state.polls);
-  const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-  const { joinPollRoom, leavePollRoom, voteInPoll } = useSockets();
-
-  const [copied, setCopied] = useState(false);
+  const { currentPoll } = useAppSelector((state) => state.polls);
+  const { joinPollRoom, leavePollRoom, voteInPoll, isConnected } = useSockets();
+  const [loading, setLoading] = useState(true);
   const [voteLoading, setVoteLoading] = useState<string | null>(null);
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  // Fetch poll data
   useEffect(() => {
     const fetchPoll = async () => {
       try {
-        setError("");
-        setSuccess("");
-
+        setLoading(true);
         const response = await fetch(`/api/polls/${pollId}`);
-
-        if (response.ok) {
-          const pollData = await response.json();
-          const adaptedPoll = adaptPollData(pollData, pollId);
-          dispatch(setCurrentPoll(adaptedPoll));
-          setSuccess("Poll loaded successfully!");
-          setTimeout(() => setSuccess(""), 2000);
-        } else {
-          const errorData = await response.json();
-          console.error(
-            "PollDetail: Failed to fetch poll:",
-            response.status,
-            errorData
-          );
-
-          if (response.status === 404) {
-            setError(
-              `Poll not found. The poll "${pollId}" doesn't exist or may have been deleted.`
-            );
-          } else if (response.status === 400) {
-            setError("Invalid poll ID.");
-          } else {
-            setError(
-              `Failed to load poll (Error ${response.status}). Please try again.`
-            );
-          }
-        }
-      } catch (error) {
-        console.error("PollDetail: Network error:", error);
-        setError("Network error. Please check your connection and try again.");
+        if (!response.ok) throw new Error(response.status === 404 ? "Poll not found" : "Failed to load poll");
+        dispatch(setCurrentPoll(adaptPollData(await response.json(), pollId)));
+        joinPollRoom(pollId);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load poll");
+      } finally {
+        setLoading(false);
       }
     };
-    if (pollId && pollId !== "undefined") {
-      fetchPoll();
-      joinPollRoom(pollId);
-    } else {
-      setError("Invalid poll ID in URL.");
-    }
-
+    if (pollId) fetchPoll();
     return () => {
-      if (pollId) {
-        leavePollRoom(pollId);
-      }
+      if (pollId) leavePollRoom(pollId);
       dispatch(setCurrentPoll(null));
     };
-  }, [pollId, dispatch, router, joinPollRoom, leavePollRoom]);
+  }, [dispatch, joinPollRoom, leavePollRoom, pollId]);
 
-  // Handle voting
+  const voterId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    const existing = localStorage.getItem("pollify_voter_id");
+    if (existing) return existing;
+    const next = crypto.randomUUID();
+    localStorage.setItem("pollify_voter_id", next);
+    return next;
+  }, []);
+
   const handleVote = async (optionId: string) => {
-    if (!user) {
-      router.push(
-        "/login?redirect=" + encodeURIComponent(window.location.pathname)
-      );
-      return;
-    }
-
-    if (!currentPoll) return;
-
-    // Check if user already voted
-    if (currentPoll.hasVoted) {
-      setError("You have already voted on this poll.");
-      return;
-    }
-
     setVoteLoading(optionId);
     setError("");
-
     try {
       const response = await fetch(`/api/polls/${pollId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ optionId, voterId: user.id }),
+        body: JSON.stringify({ optionId, voterId }),
       });
-
-      if (response.ok) {
-        const result = await response.json();
-
-        // Update via socket
-        voteInPoll(pollId, optionId);
-
-        // Update Redux store
-        const updatedPoll = adaptPollData(result.poll, pollId);
-        dispatch(updatePoll(updatedPoll));
-
-        setSuccess("Your vote has been recorded!");
-        setTimeout(() => setSuccess(""), 3000);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || "Failed to submit vote. Please try again.");
-      }
-    } catch (error) {
-      console.error("PollDetail: Vote submission error:", error);
-      setError("Network error. Please check your connection and try again.");
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to submit vote");
+      voteInPoll(pollId, optionId);
+      dispatch(updatePoll(adaptPollData(result.poll, pollId)));
+      setSuccess("Vote recorded. Results updated live.");
+      setTimeout(() => setSuccess(""), 2500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to vote");
     } finally {
       setVoteLoading(null);
     }
   };
 
-  // Copy poll URL to clipboard
-  const copyToClipboard = () => {
-    const pollUrl = `${window.location.origin}/polls/${pollId}`;
-    navigator.clipboard.writeText(pollUrl);
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(window.location.href);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    setSuccess("Poll link copied to clipboard!");
-    setTimeout(() => setSuccess(""), 2000);
+    setTimeout(() => setCopied(false), 1800);
   };
 
-  // Share on social media
-  const shareOnTwitter = () => {
-    const text = `Vote on this poll: ${currentPoll?.question}`;
-    const url = `${window.location.origin}/polls/${pollId}`;
-    window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        text
-      )}&url=${encodeURIComponent(url)}`,
-      "_blank"
-    );
-  };
-  useEffect(() => {
-    console.log("PollDetail State:", {
-      pollId,
-      currentPoll: currentPoll
-        ? {
-            id: currentPoll.id,
-            question: currentPoll.question,
-            options: currentPoll.options?.length,
-            totalVotes: currentPoll.totalVotes,
-          }
-        : null,
-      loading,
-      error,
-      user: user ? "Logged in" : "Not logged in",
-    });
-  }, [currentPoll, loading, error, pollId, user]);
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" className="mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Loading Poll
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Fetching poll data...
-          </p>
-          <div className="mt-4 text-sm text-gray-500">Poll ID: {pollId}</div>
-        </div>
+      <div className="grid min-h-[70vh] place-items-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-emerald-700" />
       </div>
     );
   }
 
-  // Show error state
-  if (error) {
+  if (error && !currentPoll) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <div className="text-6xl mb-4">😕</div>
-            <CardTitle className="text-2xl">Poll Not Found</CardTitle>
-            <CardDescription className="text-lg mt-2">{error}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <strong>Requested Poll ID:</strong>
-                <br />
-                <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
-                  {pollId}
-                </code>
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/dashboard" className="flex-1">
-                <Button className="w-full">Back to Dashboard</Button>
-              </Link>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="flex-1"
-              >
-                Try Again
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
+        <h1 className="text-2xl font-bold text-red-900">{error}</h1>
+        <Link href="/polls" className="mt-5 inline-flex">
+          <Button>Back to library</Button>
+        </Link>
       </div>
     );
   }
 
-  if (!currentPoll) {
-    return null;
-  }
+  if (!currentPoll) return null;
 
-  const hasVoted =
-    currentPoll.hasVoted || currentPoll.options.some((opt) => opt.voted);
-  const hasOptions = currentPoll.options && currentPoll.options.length > 0;
-  const leadingVotes = Math.max(...currentPoll.options.map((opt) => opt.votes));
-  const leadingOptions = currentPoll.options.filter(
-    (opt) => opt.votes === leadingVotes && opt.votes > 0
-  );
+  const leadingVotes = Math.max(0, ...currentPoll.options.map((option) => option.votes));
+  const leadingOption = currentPoll.options.find((option) => option.votes === leadingVotes);
+  const maxTimeline = Math.max(...engagementTimeline.map((item) => item.votes));
+  const participation = currentPoll.views ? Math.round((currentPoll.totalVotes / currentPoll.views) * 100) : 72;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Success Message */}
-        {success && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2 text-green-800">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-medium">{success}</span>
-            </div>
+    <div className="space-y-6">
+      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+        <div>
+          <Link href="/polls" className="mb-4 inline-flex items-center text-sm font-semibold text-slate-500 hover:text-slate-950">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to poll library
+          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${currentPoll.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+              <span className={currentPoll.isActive ? "live-dot mr-2" : "mr-2 h-2 w-2 rounded-full bg-slate-400"} />
+              {currentPoll.isActive ? "Live poll" : "Closed"}
+            </span>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600">
+              {isConnected ? "Realtime connected" : "Realtime reconnecting"}
+            </span>
           </div>
-        )}
+          <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-tight">{currentPoll.question}</h1>
+          {currentPoll.description && <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">{currentPoll.description}</p>}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" icon={copied ? CheckCircle2 : Copy} onClick={copyToClipboard}>{copied ? "Copied" : "Copy link"}</Button>
+          <Button variant="outline" icon={Share2}>Share</Button>
+          <Button icon={Download}>Export</Button>
+        </div>
+      </div>
 
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
-          <div className="flex-1">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4 group dark:text-gray-400 dark:hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              Back to dashboard
-            </Link>
+      {success && <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">{success}</div>}
+      {error && <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800">{error}</div>}
 
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 dark:border-gray-700/20 shadow-lg">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {currentPoll.question}
-                    </h1>
-                    {currentPoll.isActive ? (
-                      <Badge variant="success" className="text-sm">
-                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                        Live
-                      </Badge>
-                    ) : (
-                      <Badge variant="warning" className="text-sm">
-                        Closed
-                      </Badge>
-                    )}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {[
+          { label: "Votes", value: currentPoll.totalVotes, icon: Users },
+          { label: "Views", value: currentPoll.views || currentPoll.totalVotes * 3, icon: Eye },
+          { label: "Participation", value: `${participation}%`, icon: TrendingUp },
+          { label: "Responses", value: currentPoll.options.length, icon: Radio },
+          { label: "AI signals", value: Math.max(4, Math.round(currentPoll.totalVotes / 7)), icon: Sparkles },
+        ].map((metric) => (
+          <div key={metric.label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <metric.icon className="h-5 w-5 text-emerald-700" />
+            <p className="mt-4 text-3xl font-bold">{metric.value}</p>
+            <p className="mt-1 text-sm font-medium text-slate-500">{metric.label}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center text-xl font-bold">
+            <Zap className="mr-2 h-5 w-5 text-emerald-700" />
+            Cast a vote
+          </h2>
+          <div className="mt-5 space-y-3">
+            {currentPoll.options.map((option, index) => {
+              const percentage = calculatePercentage(option.votes, currentPoll.totalVotes);
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => handleVote(option.id)}
+                  disabled={Boolean(voteLoading)}
+                  className="w-full rounded-lg border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50 disabled:cursor-wait"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-950 text-sm font-bold text-white">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                      <span className="font-bold">{option.text}</span>
+                    </div>
+                    <span className="text-sm font-bold text-slate-500">{voteLoading === option.id ? "Saving..." : `${percentage.toFixed(1)}%`}</span>
                   </div>
+                  <div className="mt-3 h-2 rounded-full bg-slate-100">
+                    <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${percentage}%` }} />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                  {currentPoll.description && (
-                    <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-                      {currentPoll.description}
-                    </p>
-                  )}
-
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span className="font-semibold">
-                        {currentPoll.totalVotes}
-                      </span>{" "}
-                      votes
-                    </div>
-                    <div className="flex items-center">
-                      <Eye className="h-4 w-4 mr-2" />
-                      <span className="font-semibold">
-                        {currentPoll.views}
-                      </span>{" "}
-                      views
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Created{" "}
-                      {new Date(currentPoll.createdAt).toLocaleDateString()}
-                    </div>
-                    {currentPoll.createdBy &&
-                      currentPoll.createdBy !== "unknown-user" && (
-                        <div className="flex items-center">
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          By {currentPoll.createdByUser?.name || currentPoll.createdBy}
-                        </div>
-                      )}
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center text-xl font-bold">
+              <BarChart3 className="mr-2 h-5 w-5 text-emerald-700" />
+              Live result dashboard
+            </h2>
+            <span className="text-sm font-bold text-emerald-700">Top: {leadingOption?.text || "No votes yet"}</span>
+          </div>
+          <div className="mt-6 space-y-4">
+            {currentPoll.options.map((option) => {
+              const percentage = calculatePercentage(option.votes, currentPoll.totalVotes);
+              return (
+                <div key={option.id}>
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>{option.text}</span>
+                    <span>{option.votes} votes</span>
+                  </div>
+                  <div className="mt-2 h-3 rounded-full bg-slate-100">
+                    <div className="h-3 rounded-full bg-slate-950 transition-all" style={{ width: `${percentage}%` }} />
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center text-xl font-bold">
+            <TrendingUp className="mr-2 h-5 w-5 text-emerald-700" />
+            Vote timeline
+          </h2>
+          <div className="mt-6 grid grid-cols-6 items-end gap-3 rounded-lg bg-[#f7f8f3] p-4">
+            {engagementTimeline.map((item) => (
+              <div key={item.time} className="flex flex-col items-center gap-2">
+                <div className="w-full rounded-t-lg bg-emerald-500" style={{ height: `${Math.max(28, (item.votes / maxTimeline) * 170)}px` }} />
+                <span className="text-[11px] font-semibold text-slate-500">{item.time}</span>
               </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-1">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="flex items-center text-xl font-bold">
+              <Globe2 className="mr-2 h-5 w-5 text-emerald-700" />
+              Geography
+            </h2>
+            <div className="mt-5 space-y-4">
+              {audienceSegments.map((segment) => (
+                <SegmentBar key={segment.label} label={segment.label} value={segment.value} />
+              ))}
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
-            <Button
-              onClick={copyToClipboard}
-              variant="outline"
-              icon={copied ? CheckCircle : Copy}
-              className="whitespace-nowrap"
-            >
-              {copied ? "Copied!" : "Copy Link"}
-            </Button>
-            <Button
-              onClick={shareOnTwitter}
-              variant="outline"
-              icon={Share2}
-              className="whitespace-nowrap"
-            >
-              Share
-            </Button>
-            {/* {user && currentPoll?.createdBy === user.id && ( */}
-            <Link href={`/polls/edit/${pollId}`}>
-              <Button variant="outline" icon={Edit}>
-                Edit Poll
-              </Button>
-            </Link>
-            {/* )} */}
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-bold">Devices</h2>
+            <div className="mt-5 space-y-4">
+              {deviceSegments.map((segment) => (
+                <SegmentBar key={segment.label} label={segment.label} value={segment.value} />
+              ))}
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Voting Section */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                <CardTitle className="flex items-center text-2xl">
-                  <BarChart3 className="h-6 w-6 mr-3 text-indigo-600" />
-                  {hasVoted ? "Poll Results" : "Cast Your Vote"}
-                </CardTitle>
-                <CardDescription className="text-lg">
-                  {hasVoted
-                    ? "Thank you for voting! Here are the current results."
-                    : "Select your preferred option below. Your vote is anonymous."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {!hasOptions ? (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-4">📝</div>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      No voting options available.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {currentPoll.options.map((option, index) => {
-                      const percentage = calculatePercentage(
-                        option.votes,
-                        currentPoll.totalVotes
-                      );
-                      const isLeading =
-                        option.votes === leadingVotes && leadingVotes > 0;
-                      const isVoted = option.voted;
-
-                      return (
-                        <div
-                          key={option.id}
-                          className={`border-2 rounded-xl p-4 transition-all duration-300 ${
-                            hasVoted
-                              ? isVoted
-                                ? "border-indigo-300 bg-indigo-50 dark:border-indigo-500 dark:bg-indigo-900/20"
-                                : "border-gray-200 dark:border-gray-600"
-                              : "border-gray-200 dark:border-gray-600 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:border-indigo-500 dark:hover:bg-indigo-900/20 cursor-pointer transform hover:scale-[1.02]"
-                          } ${
-                            isLeading
-                              ? "ring-2 ring-indigo-200 dark:ring-indigo-400"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            !hasVoted && !voteLoading && handleVote(option.id)
-                          }
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-4 flex-1">
-                              <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-colors ${
-                                  hasVoted
-                                    ? isVoted
-                                      ? "bg-indigo-600 text-white shadow-lg"
-                                      : "bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300"
-                                    : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-indigo-100 hover:text-indigo-600 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400"
-                                }`}
-                              >
-                                {String.fromCharCode(65 + index)}
-                              </div>
-                              <span className="font-semibold text-gray-900 dark:text-white text-lg flex-1">
-                                {option.text}
-                              </span>
-                            </div>
-                            {hasVoted && (
-                              <div className="text-right ml-4">
-                                <div className="font-bold text-gray-900 dark:text-white text-lg">
-                                  {option.votes}
-                                </div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                                  {percentage.toFixed(1)}%
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {hasVoted && (
-                            <div className="space-y-2">
-                              <div className="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700 overflow-hidden">
-                                <div
-                                  className="h-3 rounded-full bg-linear-to-r from-indigo-500 to-purple-600 transition-all duration-1000 ease-out"
-                                  style={{ width: `${percentage}%` }}
-                                />
-                              </div>
-                              {isLeading && (
-                                <div className="flex items-center text-xs text-green-600 dark:text-green-400 font-medium">
-                                  <TrendingUp className="h-3 w-3 mr-1" />
-                                  Leading
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {!hasVoted && voteLoading === option.id && (
-                            <div className="flex justify-center mt-2">
-                              <LoadingSpinner size="sm" />
-                              <span className="ml-2 text-sm text-gray-600">
-                                Recording vote...
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {hasVoted && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                    <div className="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Results update in real-time as people vote
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar - Charts and Stats */}
-          <div className="space-y-6">
-            {/* Live Results Chart */}
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-                  Live Results
-                </CardTitle>
-                <CardDescription>Real-time visualization</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <PollChart poll={currentPoll} type="bar" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Distribution Chart */}
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle>Distribution</CardTitle>
-                <CardDescription>Percentage breakdown</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <PollChart poll={currentPoll} type="doughnut" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Poll Statistics */}
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle>Poll Statistics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Total Votes
-                  </span>
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {currentPoll.totalVotes}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Options
-                  </span>
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {currentPoll.options.length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Status
-                  </span>
-                  <Badge variant={currentPoll.isActive ? "success" : "warning"}>
-                    {currentPoll.isActive ? "Active" : "Closed"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Your Vote
-                  </span>
-                  <Badge variant={hasVoted ? "success" : "default"}>
-                    {hasVoted ? "Voted" : "Not Voted"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Created
-                  </span>
-                  <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                    {new Date(currentPoll.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Last Updated
-                  </span>
-                  <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                    {new Date(currentPoll.updatedAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+      <section className="grid gap-6 xl:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center text-xl font-bold">
+            <Sparkles className="mr-2 h-5 w-5 text-emerald-700" />
+            AI result summary
+          </h2>
+          <p className="mt-4 text-sm leading-6 text-slate-600">
+            The leading answer is gaining momentum, but the second option is close enough to merit a
+            follow-up question. Participation is healthy for a live room, with mobile users driving most late responses.
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center text-xl font-bold">
+            <MessageSquareText className="mr-2 h-5 w-5 text-emerald-700" />
+            Discussion signals
+          </h2>
+          <div className="mt-4 space-y-3">
+            {recentActivity.slice(0, 3).map((activity) => (
+              <div key={activity} className="rounded-lg bg-[#f7f8f3] p-3 text-sm font-semibold text-slate-600">{activity}</div>
+            ))}
           </div>
         </div>
+      </section>
+    </div>
+  );
+}
+
+function SegmentBar({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <div className="flex justify-between text-sm font-semibold">
+        <span>{label}</span>
+        <span>{value}%</span>
+      </div>
+      <div className="mt-2 h-2 rounded-full bg-slate-100">
+        <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${value}%` }} />
       </div>
     </div>
   );

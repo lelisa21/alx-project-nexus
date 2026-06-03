@@ -1,8 +1,6 @@
 import {
   Activity,
   BarChart3,
-  Bot,
-  Brain,
   Building2,
   CalendarClock,
   Globe2,
@@ -49,9 +47,9 @@ export const featurePillars = [
     text: "Presence, instant vote updates, reactions, Q&A, and reconnection-aware sessions for events and teams.",
   },
   {
-    icon: Brain,
-    title: "AI-assisted creation",
-    text: "Generate questions, answer choices, audience prompts, and follow-up recommendations from a goal.",
+    icon: MessageSquareText,
+    title: "Guided creation",
+    text: "Start from proven templates, reusable prompts, and clear setup steps that keep poll creation fast.",
   },
   {
     icon: BarChart3,
@@ -74,7 +72,7 @@ export const useCases = [
   "Classroom engagement",
 ];
 
-export const aiSuggestions = [
+export const questionSuggestions = [
   "What should we prioritize next to reduce onboarding friction?",
   "Which release risk needs leadership attention this week?",
   "How confident are you in the current launch plan?",
@@ -89,7 +87,7 @@ export const pollTemplates = [
 
 export const recentActivity = [
   "Marketing workspace launched Brand Recall Study",
-  "AI summarized 286 responses for Product Roadmap",
+  "Product Roadmap crossed 286 responses",
   "Nadia invited 3 collaborators to Customer Advisory Board",
   "Town Hall Q&A crossed 1,200 live participants",
 ];
@@ -105,5 +103,5 @@ export const enterpriseSignals = [
   { icon: Globe2, label: "Custom domains" },
   { icon: Users, label: "Role management" },
   { icon: CalendarClock, label: "Scheduled publishing" },
-  { icon: Bot, label: "AI insights" },
+  { icon: BarChart3, label: "Saved reports" },
 ];

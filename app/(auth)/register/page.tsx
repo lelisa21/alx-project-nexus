@@ -1,214 +1,123 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { registerSchema, RegisterInput } from "@/lib/schemas/auth";
-import { Mail, User, Lock, Eye, EyeOff, Github, Chrome } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRight, Eye, EyeOff, Lock, LucideIcon, Mail, Radio, User, Users, Zap } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 export default function Register() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setError,
-  } = useForm<RegisterInput>({
+  const { register, handleSubmit, formState: { errors }, setError } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
   });
 
   const onSubmit = async (data: RegisterInput) => {
     setIsSubmitting(true);
-    
     try {
-      const res = await fetch("/api/auth/register", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        }),
+        body: JSON.stringify({ name: data.name, email: data.email, password: data.password }),
       });
-
-      const responseData = await res.json();
-
-      if (!res.ok) {
-        setError("root", { 
-          message: responseData.error || "Registration failed. Please try again." 
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
+      const responseData = await response.json();
+      if (!response.ok) throw new Error(responseData.error || "Registration failed. Please try again.");
       router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error("Registration error:", error);
-      setError("root", { 
-        message: "Network error. Please check your connection and try again." 
-      });
+      setError("root", { message: error instanceof Error ? error.message : "Network error. Please try again." });
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-100 to-blue-200 flex items-center justify-center p-4">
-      <div className="card p-10 w-full lg:max-w-[60%]">
-        <h1 className="text-3xl font-bold text-center mb-6">
-          Create your account
-        </h1>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-8">
-          {/* NAME */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                {...register("name")}
-                type="text"
-                className="input-primary pl-10"
-                placeholder="Your name"
-              />
-            </div>
-            {errors.name && (
-              <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
-            )}
-          </div>
-
-          {/* EMAIL */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                {...register("email")}
-                type="email"
-                className="input-primary pl-10"
-                placeholder="example@gmail.com"
-              />
-            </div>
-            {errors.email && (
-              <p className="text-sm text-red-600 mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-
-          {/* PASSWORD */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                className="input-primary pl-10 pr-10"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-              >
-                {showPassword ? <EyeOff /> : <Eye />}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-sm text-red-600 mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          {/* CONFIRM PASSWORD */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                {...register("confirmPassword")}
-                type={showPassword ? "text" : "password"}
-                className="input-primary pl-10"
-                placeholder="Confirm password"
-              />
-            </div>
-            {errors.confirmPassword && (
-              <p className="text-sm text-red-600 mt-1">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
-
-          {/* ROOT ERRORS */}
-          {errors.root && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center text-red-600">
-              {errors.root.message}
-            </div>
-          )}
-
-          <button 
-            type="submit" 
-            className="btn-primary w-full py-3 text-lg"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
-                Creating Account...
-              </div>
-            ) : (
-              "Create Account"
-            )}
-          </button>
-        </form>
-
-        {/* OAuth Section */}
-        <div className="mt-8">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500 dark:bg-gray-800 dark:text-white">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button
-              onClick={() => signIn("google")}
-              className="btn-secondary flex items-center justify-center py-3"
-            >
-              <Chrome className="w-5 h-5 mr-2" /> Google
-            </button>
-
-            <button
-              onClick={() => signIn("github")}
-              className="btn-secondary flex items-center justify-center py-3"
-            >
-              <Github className="w-5 h-5 mr-2" /> GitHub
-            </button>
-          </div>
-        </div>
-
-        <p className="mt-6 text-center">
-          Already have an account?
-          <Link href="/login" className="text-teal-600 ml-1 font-medium">
-            Sign in
+    <main className="product-shell grid min-h-screen place-items-center p-4 sm:p-8">
+      <div className="grid w-full max-w-6xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm lg:grid-cols-[0.95fr_1.05fr]">
+        <section className="bg-slate-950 p-8 text-white sm:p-10">
+          <Link href="/" className="flex items-center gap-3 font-bold">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-400 text-slate-950">
+              <Radio className="h-5 w-5" />
+            </span>
+            Pollify
           </Link>
-        </p>
+          <h1 className="mt-12 text-4xl font-bold leading-tight">Create a workspace for decisions, not just polls.</h1>
+          <p className="mt-4 text-sm leading-6 text-white/60">
+            Launch branded sessions, invite collaborators, collect reactions, and turn responses into a reusable intelligence library.
+          </p>
+          <div className="mt-10 grid gap-3">
+            {[
+              { title: "Live rooms", text: "Instant participant and vote updates", icon: Zap },
+              { title: "Team workflows", text: "Shared templates, roles, and activity", icon: Users },
+            ].map((item) => (
+              <div key={item.title} className="rounded-lg border border-white/10 bg-white/6 p-4">
+                <item.icon className="h-5 w-5 text-emerald-300" />
+                <p className="mt-3 font-bold">{item.title}</p>
+                <p className="mt-1 text-sm text-white/55">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="p-6 sm:p-10">
+          <p className="text-sm font-bold uppercase text-emerald-700">Create account</p>
+          <h2 className="mt-2 text-3xl font-bold">Start building with Pollify.</h2>
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
+            <Field icon={User} label="Full name" error={errors.name?.message}>
+              <input {...register("name")} type="text" className="input-primary pl-10" placeholder="Ada Lovelace" />
+            </Field>
+            <Field icon={Mail} label="Email" error={errors.email?.message}>
+              <input {...register("email")} type="email" className="input-primary pl-10" placeholder="you@company.com" />
+            </Field>
+            <Field icon={Lock} label="Password" error={errors.password?.message}>
+              <input {...register("password")} type={showPassword ? "text" : "password"} className="input-primary pl-10 pr-10" placeholder="Create a strong password" />
+              <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" aria-label="Toggle password visibility">
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </Field>
+            <Field icon={Lock} label="Confirm password" error={errors.confirmPassword?.message}>
+              <input {...register("confirmPassword")} type={showPassword ? "text" : "password"} className="input-primary pl-10" placeholder="Confirm password" />
+            </Field>
+
+            {errors.root && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{errors.root.message}</div>}
+
+            <button type="submit" disabled={isSubmitting} className="btn-primary flex w-full items-center justify-center py-3">
+              {isSubmitting ? "Creating workspace..." : "Create workspace"}
+              {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
+            </button>
+          </form>
+          <p className="mt-6 text-center text-sm text-slate-500">
+            Already have an account? <Link href="/login" className="font-bold text-slate-950">Sign in</Link>
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
+  );
+}
+
+function Field({
+  icon: Icon,
+  label,
+  error,
+  children,
+}: {
+  icon: LucideIcon;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="text-sm font-bold">{label}</span>
+      <span className="relative mt-2 block">
+        <Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        {children}
+      </span>
+      {error && <span className="mt-1 block text-sm font-semibold text-red-600">{error}</span>}
+    </label>
   );
 }

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const demoUserId = "11111111-1111-4111-8111-111111111111";
+const demoUserId = "111111111111111111111111";
 
 async function main() {
   console.log("Starting Pollify demo seed...");
@@ -16,7 +16,7 @@ async function main() {
     await prisma.user.deleteMany({
       where: {
         email: {
-          in: ["demo@example.com", "test@pollify.com"],
+          in: ["demo@pollify.com", "test@pollify.com"],
         },
       },
     });
@@ -25,7 +25,7 @@ async function main() {
   const demoPassword = await bcrypt.hash("demo123", 10);
 
   const user = await prisma.user.upsert({
-    where: { email: "demo@example.com" },
+    where: { email: "demo@pollify.com" },
     update: {
       id: demoUserId,
       name: "Pollify Demo",
@@ -33,7 +33,7 @@ async function main() {
     },
     create: {
       id: demoUserId,
-      email: "demo@example.com",
+      email: "demo@pllify.com",
       name: "Pollify Demo",
       password: demoPassword,
     },
