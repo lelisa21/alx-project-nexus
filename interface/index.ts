@@ -13,11 +13,12 @@ export interface Poll {
   description?: string; 
   options: PollOption[];
   createdBy?: string;
+  userId?: string | null;
   createdByUser?: { 
     id?: string;
-    name: string;
+    name?: string | null;
     email?: string;
-  };
+  } | null;
   createdAt: string;
   updatedAt: string;
   isActive: boolean;

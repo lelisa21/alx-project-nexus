@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { createSessionToken } from "@/lib/session";
 
 // Demo user credentials (for testing without database)
 const DEMO_USER = {
   email: "demo@example.com",
   password: "demo123", // Plain text for demo
-  name: "Demo User",
-  id: "demo-user-123",
+  name: "Pollify Demo",
+  id: "11111111-1111-4111-8111-111111111111",
 };
 
 export async function POST(request: Request) {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
       // For demo user, check password
       if (password === DEMO_USER.password) {
         console.log("Demo login successful");
-        return NextResponse.json({
+        const response = NextResponse.json({
           user: {
             id: DEMO_USER.id,
             email: DEMO_USER.email,
@@ -39,6 +40,19 @@ export async function POST(request: Request) {
           },
           message: "Demo login successful",
         });
+        response.cookies.set("pollify_session", createSessionToken({
+          userId: DEMO_USER.id,
+          email: DEMO_USER.email,
+          name: DEMO_USER.name,
+          isDemo: true,
+        }), {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 7,
+        });
+        return response;
       } else {
         return NextResponse.json(
           { error: "Invalid password for demo account." },
@@ -89,10 +103,23 @@ export async function POST(request: Request) {
 
     console.log("Login successful for:", user.email);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: userWithoutPassword,
       message: "Login successful",
     });
+    response.cookies.set("pollify_session", createSessionToken({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+    }), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
 
   } catch (error) {
     console.error("Login error:", error);

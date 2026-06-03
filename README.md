@@ -40,7 +40,7 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 |------------|---------|---------|
 | **Next.js API Routes** | Serverless API
 | **Prisma** | Database ORM 
-| **MongoDB** | Database 
+| **Supabase PostgreSQL** | Database 
 | **Socket.io** | Real-time Communication
 | **NextAuth.js** | Authentication
 
@@ -58,7 +58,7 @@ A modern, real-time polling application built with Next.js 16, featuring live re
 |------------|---------|
 | **Vercel** | Hosting & Deployment |
 | **GitHub Actions** | CI/CD Pipeline |
-| **MongoDB Atlas** | Cloud Database |
+| **Supabase** | Managed PostgreSQL database |
 
 
 ##  Project Structure
@@ -98,7 +98,7 @@ pollify/
 
 ### Prerequisites
 - Node.js 18+ 
-- MongoDB database
+- Supabase project with a PostgreSQL database
 - Git
 
 ### Installation
@@ -120,8 +120,8 @@ pollify/
    ```
    Configure your environment variables:
    ```env
-   # Database
-   DATABASE_URL="mongodb://localhost:27017/pollify"
+   # Database - use the Supabase pooled or direct PostgreSQL connection string
+   DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public"
    
    # Authentication
    NEXTAUTH_URL="http://localhost:3000"
@@ -141,6 +141,12 @@ pollify/
    npx prisma db seed
    ```
 
+   Supabase note: if `prisma db push` fails while using the Supabase pooler
+   host, temporarily set `DATABASE_URL` to the direct connection string from
+   Supabase Project Settings > Database > Connection string > Direct connection,
+   then run `npx prisma db push`. Use the pooler URL again for normal runtime
+   deployments.
+
 5. **Run Development Server**
    ```bash
    npm run dev
@@ -152,7 +158,7 @@ pollify/
 ### Core Models
 ```prisma
 model User {
-  id        String   @id @default(auto()) @map("_id")
+  id        String   @id @default(uuid()) @db.Uuid
   email     String   @unique
   name      String?
   polls     Poll[]
@@ -162,13 +168,13 @@ model User {
 }
 
 model Poll {
-  id          String   @id @default(auto()) @map("_id")
+  id          String   @id @default(uuid()) @db.Uuid
   question    String
   description String?
   isActive    Boolean  @default(true)
   totalVotes  Int      @default(0)
   views       Int      @default(0)
-  userId      String?  // Author reference
+  userId      String?  @db.Uuid // Author reference
   options     Option[]
   settings    PollSettings?
   votes       Vote[]
@@ -177,10 +183,10 @@ model Poll {
 }
 
 model Option {
-  id     String @id @default(auto()) @map("_id")
+  id     String @id @default(uuid()) @db.Uuid
   text   String
   votes  Int    @default(0)
-  pollId String
+  pollId String @db.Uuid
   poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
 }
 ```
@@ -279,7 +285,7 @@ npm run test:coverage
 
 ### Environment Variables for Production
 ```env
-DATABASE_URL="mongodb+srv://..."
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public"
 NEXTAUTH_URL="https://yourdomain.vercel.app"
 NEXTAUTH_SECRET="production-secret"
 ```
@@ -331,7 +337,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-6-green?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
 </div>

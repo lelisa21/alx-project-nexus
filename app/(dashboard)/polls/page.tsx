@@ -74,7 +74,9 @@ export default function AllPolls() {
       });
     };
   }, [polls, joinPollRoom, leavePollRoom]);
-  const userPolls = user ? polls.filter((poll) => poll.id === user.id) : polls;
+  const userPolls = user
+    ? polls.filter((poll) => poll.createdBy === user.id)
+    : polls;
 
   const filteredPolls = userPolls.filter((poll) => {
     const matchesSearch =

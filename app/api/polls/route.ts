@@ -1,8 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import type { Prisma, Poll, PollSettings, User, Option, Vote } from "@prisma/client";
 
-function isValidObjectId(id: string): boolean {
-  return /^[0-9a-fA-F]{24}$/.test(id);
+type IncomingPollOption = {
+  text?: string;
+};
+
+type PollSettingsInput = {
+  isPublic?: boolean;
+  allowMultipleVotes?: boolean;
+  requireEmail?: boolean;
+  showResults?: boolean;
+  endDate?: string | null;
+};
+
+type CreatePollBody = {
+  question?: string;
+  description?: string;
+  options?: IncomingPollOption[];
+  createdBy?: string | null;
+  settings?: PollSettingsInput;
+};
+
+function isValidUuid(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
+type PollWithRelations = Poll & {
+  options: Option[];
+  settings: PollSettings | null;
+  user: Pick<User, "id" | "name" | "email"> | null;
+  votes?: Pick<Vote, "id">[];
+};
+
+function serializePoll(poll: PollWithRelations) {
+  const { user, userId, ...pollData } = poll;
+
+  return {
+    ...pollData,
+    userId,
+    createdBy: userId,
+    createdByUser: user,
+  };
 }
 
 export async function GET() {
@@ -31,15 +74,8 @@ export async function GET() {
       },
     });
 
-    const safePolls = polls.map((poll) => ({
-      ...poll,
-      options: poll.options.map((option) => ({
-        ...option,
-      })),
-    }));
-
-    return NextResponse.json(safePolls);
-  } catch (error: any) {
+    return NextResponse.json(polls.map(serializePoll));
+  } catch (error) {
     console.error("GET /api/polls Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch polls" },
@@ -50,7 +86,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as CreatePollBody;
 
     // Validate required fields
     if (!body.question?.trim()) {
@@ -69,9 +105,9 @@ export async function POST(request: NextRequest) {
 
     // Process options
     const validOptions = body.options
-      .filter((opt: any) => opt?.text?.trim())
+      .filter((opt): opt is { text: string } => Boolean(opt?.text?.trim()))
       .slice(0, 8)
-      .map((opt: any) => ({
+      .map((opt) => ({
         text: opt.text.trim(),
         votes: 0,
       }));
@@ -84,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the data object
-    const pollData: any = {
+    const pollData: Prisma.PollCreateInput = {
       question: body.question.trim(),
       description: body.description?.trim() || "",
       isAnonymous: !body.createdBy,
@@ -96,7 +132,7 @@ export async function POST(request: NextRequest) {
     // Handle user connection if provided
     if (body.createdBy) {
       try {
-        if (isValidObjectId(body.createdBy)) {
+        if (isValidUuid(body.createdBy)) {
           const user = await prisma.user.findUnique({
             where: { id: body.createdBy },
           });
@@ -146,13 +182,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(newPoll, { status: 201 });
-  } catch (error: any) {
+    return NextResponse.json(serializePoll(newPoll), { status: 201 });
+  } catch (error) {
     console.error("POST /api/polls Error:", error);
+    const errorMessage = getErrorMessage(error);
     return NextResponse.json(
       {
         error: "Failed to create poll",
-        details: error.message,
+        details: errorMessage,
       },
       { status: 500 }
     );

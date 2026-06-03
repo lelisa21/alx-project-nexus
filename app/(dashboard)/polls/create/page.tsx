@@ -191,7 +191,7 @@ export default function CreatePoll() {
                 Create New Poll
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">
-                Create engaging polls in seconds - no login required
+                Create engaging polls in seconds for your workspace
               </p>
             </div>
           </div>

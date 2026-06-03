@@ -15,12 +15,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log('Checking authentication...');
         const response = await fetch('/api/auth/me');
         
         if (response.ok) {
           const user = await response.json();
-          console.log('Auth check result:', user);
           
           if (user) {
             dispatch(setUser(user));
@@ -30,14 +28,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
               router.push('/dashboard');
             }
           } else {
-            // No user logged in
-            if (pathname.startsWith('/dashboard')) {
-         
-              console.log('No user, but staying on page for demo');
-            }
+            dispatch(setUser(null));
           }
-        } else {
-          console.log('Auth check failed with status:', response.status);
         }
       } catch (error) {
         console.error('Auth check failed:', error);

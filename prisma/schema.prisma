@@ -1,21 +1,21 @@
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  email         String   @unique
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique
   name          String?
-  password      String?         // For login via credentials
-  emailVerified DateTime?       // Needed for NextAuth email verification
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  password      String? // For login via credentials
+  emailVerified DateTime? // Needed for NextAuth email verification
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   polls Poll[]
   votes Vote[]
@@ -24,7 +24,7 @@ model User {
 }
 
 model Poll {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(uuid()) @db.Uuid
   question    String
   description String?
   isActive    Boolean  @default(true)
@@ -35,22 +35,22 @@ model Poll {
   isAnonymous Boolean  @default(true)
 
   // Relations
-  userId String? @db.ObjectId
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?       @db.Uuid
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdBy String?
-  options  Option[]
-  settings PollSettings?
-  votes    Vote[]
+  options   Option[]
+  settings  PollSettings?
+  votes     Vote[]
 
   @@map("polls")
 }
 
 model Option {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  id    String @id @default(uuid()) @db.Uuid
   text  String
   votes Int    @default(0)
 
-  pollId String @db.ObjectId
+  pollId String @db.Uuid
   poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
   votesRelation Vote[]
@@ -59,32 +59,32 @@ model Option {
 }
 
 model PollSettings {
-  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  id                 String    @id @default(uuid()) @db.Uuid
   isPublic           Boolean   @default(true)
   allowMultipleVotes Boolean   @default(false)
   requireEmail       Boolean   @default(false)
   showResults        Boolean   @default(true)
   endDate            DateTime?
 
-  pollId String @unique @db.ObjectId
+  pollId String @unique @db.Uuid
   poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
   @@map("poll_settings")
 }
 
 model Vote {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  id      String   @id @default(uuid()) @db.Uuid
   voterId String?
   votedAt DateTime @default(now())
 
   // Relations
-  optionId String @db.ObjectId
+  optionId String @db.Uuid
   option   Option @relation(fields: [optionId], references: [id], onDelete: Cascade)
 
-  pollId String @db.ObjectId
+  pollId String @db.Uuid
   poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
-  userId String? @db.ObjectId
+  userId String? @db.Uuid
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([pollId, voterId])

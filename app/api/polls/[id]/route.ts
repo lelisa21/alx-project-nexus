@@ -1,8 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import type { Prisma, Poll, PollSettings, User, Option } from "@prisma/client";
 
-function isValidObjectId(id: string): boolean {
-  return /^[0-9a-fA-F]{24}$/.test(id);
+type IncomingPollOption = {
+  text: string;
+  votes?: number;
+};
+
+type PollSettingsInput = {
+  isPublic?: boolean;
+  allowMultipleVotes?: boolean;
+  requireEmail?: boolean;
+  showResults?: boolean;
+  endDate?: string | null;
+};
+
+type UpdatePollBody = {
+  question?: string;
+  description?: string;
+  options?: IncomingPollOption[];
+  settings?: PollSettingsInput;
+};
+
+type VoteBody = {
+  optionId?: string;
+  voterId?: string;
+};
+
+function isValidUuid(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
+type PollWithRelations = Poll & {
+  options: Option[];
+  settings: PollSettings | null;
+  user?: Pick<User, "id" | "name" | "email"> | null;
+};
+
+function serializePoll(poll: PollWithRelations) {
+  const { user = null, userId, ...pollData } = poll;
+
+  return {
+    ...pollData,
+    userId,
+    createdBy: userId,
+    createdByUser: user,
+  };
 }
 
 // Helper to extract params
@@ -17,7 +64,7 @@ export async function GET(
   try {
     const { id } = await getParams(params);
     
-    if (!isValidObjectId(id)) {
+    if (!isValidUuid(id)) {
       return NextResponse.json(
         { error: "Invalid poll ID format" },
         { status: 400 }
@@ -51,11 +98,12 @@ export async function GET(
       data: { views: { increment: 1 } },
     });
 
-    return NextResponse.json(poll);
-  } catch (error: any) {
+    return NextResponse.json(serializePoll(poll));
+  } catch (error) {
     console.error("GET /api/polls/[id] Error:", error);
+    const errorMessage = getErrorMessage(error);
     return NextResponse.json(
-      { error: "Failed to fetch poll: " + error.message },
+      { error: "Failed to fetch poll: " + errorMessage },
       { status: 500 }
     );
   }
@@ -67,9 +115,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await getParams(params);
-    const body = await request.json();
+    const body = (await request.json()) as UpdatePollBody;
 
-    if (!isValidObjectId(id)) {
+    if (!isValidUuid(id)) {
       return NextResponse.json(
         { error: "Invalid poll ID format" },
         { status: 400 }
@@ -87,7 +135,7 @@ export async function PUT(
     }
 
     // Build update data
-    const updateData: any = {
+    const updateData: Prisma.PollUpdateInput = {
       question: body.question,
       description: body.description,
       updatedAt: new Date(),
@@ -124,7 +172,7 @@ export async function PUT(
 
       // Create new options
       updateData.options = {
-        create: body.options.map((opt: any) => ({
+        create: body.options.map((opt) => ({
           text: opt.text,
           votes: opt.votes || 0,
         })),
@@ -150,12 +198,13 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(updatedPoll);
-  } catch (error: any) {
+    return NextResponse.json(serializePoll(updatedPoll));
+  } catch (error) {
     console.error("PUT /api/polls/[id] Error:", error);
+    const errorMessage = getErrorMessage(error);
     return NextResponse.json(
       {
-        error: "Failed to update poll: " + error.message,
+        error: "Failed to update poll: " + errorMessage,
       },
       { status: 500 }
     );
@@ -168,9 +217,9 @@ export async function POST(
 ) {
   try {
     const { id } = await getParams(params);
-    const { optionId, voterId } = await request.json();
+    const { optionId, voterId } = (await request.json()) as VoteBody;
 
-    if (!isValidObjectId(id) || !isValidObjectId(optionId)) {
+    if (!optionId || !isValidUuid(id) || !isValidUuid(optionId)) {
       return NextResponse.json(
         { error: "Invalid poll or option ID" },
         { status: 400 }
@@ -245,13 +294,14 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      poll: updatedPoll,
+      poll: updatedPoll ? serializePoll(updatedPoll) : null,
       votedOption: optionId,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("POST /api/polls/[id] Error:", error);
+    const errorMessage = getErrorMessage(error);
     return NextResponse.json(
-      { error: "Failed to submit vote: " + error.message },
+      { error: "Failed to submit vote: " + errorMessage },
       { status: 500 }
     );
   }

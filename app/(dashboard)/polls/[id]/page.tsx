@@ -50,7 +50,8 @@ const adaptPollData = (pollData: any, pollId: string): Poll => {
     isActive: pollData.isActive !== false,
     createdAt: pollData.createdAt || new Date().toISOString(),
     updatedAt: pollData.updatedAt || new Date().toISOString(),
-    createdBy: pollData.createdBy || "unknown-user",
+    createdBy: pollData.createdBy || pollData.userId || "unknown-user",
+    createdByUser: pollData.createdByUser || pollData.user || null,
     hasVoted: pollData.hasVoted || false,
     views: pollData.views || 0,
   };
@@ -150,7 +151,7 @@ export default function PollDetail() {
       const response = await fetch(`/api/polls/${pollId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ optionId }),
+        body: JSON.stringify({ optionId, voterId: user.id }),
       });
 
       if (response.ok) {
@@ -179,7 +180,7 @@ export default function PollDetail() {
 
   // Copy poll URL to clipboard
   const copyToClipboard = () => {
-    const pollUrl = `${window.location.origin}/poll/${pollId}`;
+    const pollUrl = `${window.location.origin}/polls/${pollId}`;
     navigator.clipboard.writeText(pollUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -190,7 +191,7 @@ export default function PollDetail() {
   // Share on social media
   const shareOnTwitter = () => {
     const text = `Vote on this poll: ${currentPoll?.question}`;
-    const url = `${window.location.origin}/poll/${pollId}`;
+    const url = `${window.location.origin}/polls/${pollId}`;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(
         text
@@ -354,7 +355,7 @@ export default function PollDetail() {
                       currentPoll.createdBy !== "unknown-user" && (
                         <div className="flex items-center">
                           <MessageCircle className="h-4 w-4 mr-2" />
-                          By {currentPoll.createdBy}
+                          By {currentPoll.createdByUser?.name || currentPoll.createdBy}
                         </div>
                       )}
                   </div>

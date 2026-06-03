@@ -3,6 +3,7 @@
 import { useAppSelector } from '@/store/hooks';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface ProtectedRouteProps {
@@ -12,21 +13,20 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, loading } = useAppSelector((state) => state.auth);
   const router = useRouter();
+  const pathname = usePathname();
   const [checked, setChecked] = useState(false);
+  const isPublicPollView = /^\/polls\/[^/]+$/.test(pathname);
 
   useEffect(() => {
     if (!loading) {
-      // For demo purposes, allow access even if not authenticated
-      // This lets users test the dashboard without proper auth
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (!isAuthenticated && !isPublicPollView) {
+        router.push('/login');
+        return;
+      }
+
       setChecked(true);
-      
-      // Optional: Uncomment to enable proper auth
-      // if (!isAuthenticated) {
-      //   router.push('/login');
-      // }
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, isPublicPollView, loading, router]);
 
   if (loading) {
     return (
@@ -36,8 +36,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // For demo: show children even if not authenticated
-  // Remove this for production
   if (!checked) {
     return (
       <div className="min-h-screen flex items-center justify-center">

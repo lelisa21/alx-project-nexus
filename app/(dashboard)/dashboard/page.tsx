@@ -81,15 +81,26 @@ export default function Dashboard() {
 
   const recentPolls = polls.slice(0, 6);
 
-  // Chart data for overview charts
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+  const votesByMonth = monthLabels.map((month) =>
+    polls
+      .filter(
+        (poll) =>
+          new Date(poll.createdAt).toLocaleString("en-US", {
+            month: "short",
+          }) === month
+      )
+      .reduce((sum, poll) => sum + poll.totalVotes, 0)
+  );
+
   const votesOverTimeData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    labels: monthLabels,
     datasets: [
       {
         label: "Votes",
-        data: [65, 59, 80, 81, 56, 55],
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderColor: "rgba(54, 162, 235, 1)",
+        data: votesByMonth,
+        backgroundColor: "rgba(16, 185, 129, 0.16)",
+        borderColor: "rgba(16, 185, 129, 1)",
         borderWidth: 2,
         tension: 0.4,
       },
@@ -300,7 +311,7 @@ export default function Dashboard() {
             Recent Polls
           </h2>
           <Link
-            href="/dashboard/polls"
+            href="/polls"
             className="text-sm text-indigo-600 hover:text-indigo-500 font-medium flex items-center dark:text-indigo-400 dark:hover:text-indigo-300"
           >
             View all polls
@@ -333,55 +344,50 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Link href="/polls/create">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Plus className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    Create Poll
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Start a new poll
-                  </p>
-                </CardContent>
-              </Card>
+      <section>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Quick Actions
+        </h2>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            {
+              href: "/polls/create",
+              icon: Plus,
+              title: "Create Poll",
+              description: "Launch a live session",
+              color: "text-indigo-600",
+            },
+            {
+              href: "/polls",
+              icon: BarChart3,
+              title: "View All Polls",
+              description: "Manage and analyze",
+              color: "text-green-600",
+            },
+            {
+              href: "/profile",
+              icon: Users,
+              title: "Profile",
+              description: "Account and stats",
+              color: "text-blue-600",
+            },
+          ].map((action) => (
+            <Link
+              key={action.href}
+              href={action.href}
+              className="rounded-lg border border-gray-200 bg-white p-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
+            >
+              <action.icon className={`h-8 w-8 ${action.color} mx-auto mb-2`} />
+              <p className="font-medium text-gray-900 dark:text-white">
+                {action.title}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {action.description}
+              </p>
             </Link>
-            <Link href="/polls">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <BarChart3 className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    View All Polls
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Manage your polls
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/profile">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    Profile
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    View your stats
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
