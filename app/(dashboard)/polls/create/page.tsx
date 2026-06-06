@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Eye,
+  MessageCircleIcon,
   Palette,
   Plus,
   Radio,
@@ -174,7 +175,7 @@ export default function CreatePoll() {
           {activeStep === 0 && (
             <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
-                <MessageIcon />
+                <MessageCircleIcon />
                 <h2 className="text-xl font-bold">Start with intent</h2>
               </div>
               <div className="mt-6 grid gap-4">
