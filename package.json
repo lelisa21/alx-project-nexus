@@ -2,10 +2,10 @@
   "name": "online-polling-system",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
+"scripts": {
     "dev": "next dev --turbopack",
     "build": "prisma generate && prisma db push && next build",
-    "start": "node socket-server.js",
+    "start": "concurrently \"next start\" \"node socket-server.js\"",
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
@@ -23,6 +23,7 @@
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
+    "concurrently": "^10.0.3",
     "lucide-react": "^0.554.0",
     "next": "16.0.3",
     "next-auth": "^4.24.13",
@@ -42,14 +43,14 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/chart.js": "^2.9.41",
-    "@types/node": "^20",
-    "@types/react": "^19",
+    "@types/node": "^20.19.42",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19",
     "@types/socket.io": "^3.0.1",
     "baseline-browser-mapping": "^2.10.34",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
